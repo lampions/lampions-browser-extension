@@ -1,0 +1,17 @@
+@font-face {
+  font-family: Cantarell;
+  src: url(../fonts/cantarell.ttf);
+}
+
+* {
+  font-size: 1.1em;
+  font-family: Cantarell, Arial, sans-serif;
+}
+
+body {
+  white-space: nowrap;
+}
+
+#forwards {
+  min-width: 30ex;
+}

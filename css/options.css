@@ -1,0 +1,38 @@
+.option {
+  display: table;
+  margin: 0.75em auto;
+  width: 100%;
+}
+
+.no-overflow {
+  overflow: hidden;
+}
+
+.option label {
+  display: table-cell;
+  width: 6em;
+}
+
+.option .float-right {
+  float: right;
+  margin-left: 0.5em;
+}
+
+input[type="text"],
+select {
+  display: table-cell;
+  width: 100%;
+}
+
+#status {
+  color: green;
+  opacity: 0;
+}
+
+.fade-out {
+  transition: opacity 2.5s;
+}
+
+#status {
+  padding-left: 1em;
+}

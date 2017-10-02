@@ -1,0 +1,38 @@
+<!doctype html>
+<html>
+  <head>
+    <link rel="stylesheet" type="text/css" href="css/options.css">
+  </head>
+  <body>
+    <div class="option">
+      <button id="forwards-submit" class="float-right">Add</button>
+      <div class="no-overflow">
+        <input id="forwards-input" type="text" placeholder="Forward address">
+      </div>
+    </div>
+    <div class="option">
+      <label>Addresses:</label>
+      <button id="remove-submit" class="float-right">Remove</button>
+      <div class="no-overflow">
+        <select id="forwards"></select>
+      </div>
+    </div>
+
+    <div class="option">
+      <label for="domain">Domain:</label>
+      <input name="domain" id="domain" type="text"></input>
+    </div>
+
+    <div class="option">
+      <label for="api-key">API key:</label>
+      <input name="api-key" id="api-key" type="text"></input>
+    </div>
+
+    <div class="option">
+      <button id="save">Save</button>
+      <span id="status">Options saved!</span>
+    </div>
+
+    <script src="js/options.js"></script>
+  </body>
+</html>
