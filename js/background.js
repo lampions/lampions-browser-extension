@@ -20,7 +20,7 @@ function init() {
   chrome.runtime.onInstalled.addListener(init);
   chrome.runtime.onStartup.addListener(init);
   chrome.alarms.onAlarm.addListener(function(alarm) {
-    if (alarm.name == "pollChannelStates") {
+    if (alarm.name === "pollChannelStates") {
       synchronize_data();
     }
   });
