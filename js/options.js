@@ -59,7 +59,7 @@ function restore_options() {
     select.setAttribute("disabled", true);
     items.forwards.forEach(function(item) {
       append_list_element(select, item);
-      select.removeAttribute("disabled");
+      set_element_sensitive_ex(select, true);
     }.bind(select));
     document.getElementById("domain").value = items.domain;
     document.getElementById("api-key").value = items.api_key;
@@ -73,16 +73,32 @@ function add_forward_address() {
   if (forward && validate_email(forward) && forwards.indexOf(forward) === -1) {
     var select = document.getElementById("forwards");
     prepend_list_element(select, forward);
-    select.removeAttribute("disabled");
+    set_element_sensitive("forwards-submit", false);
+    set_element_sensitive_ex(select, true);
+    set_element_sensitive("remove-submit", true);
     input.value = "";
   }
+}
+
+function set_element_sensitive_ex(element, status) {
+  if (status) {
+    element.removeAttribute("disabled");
+  } else {
+    element.setAttribute("disabled", true);
+  }
+}
+
+function set_element_sensitive(id, status) {
+  var element = document.getElementById(id);
+  set_element_sensitive_ex(element, status);
 }
 
 function remove_forward_address() {
   var select = document.getElementById("forwards");
   select.remove(select.selectedIndex);
   if (select.options.length === 0) {
-    select.setAttribute("disabled", true);
+    set_element_sensitive_ex(select, false);
+    set_element_sensitive("remove-submit", false);
   }
 }
 
@@ -101,11 +117,7 @@ function remove_forward_address() {
   });
   input.addEventListener("input", function() {
     var email = strip_string(input.value);
-    if (validate_email(email)) {
-      submit.removeAttribute("disabled");
-    } else {
-      submit.setAttribute("disabled", true);
-    }
+    set_element_sensitive_ex(submit, validate_email(email));
   });
   document.getElementById("remove-submit").addEventListener(
     "click", remove_forward_address);
