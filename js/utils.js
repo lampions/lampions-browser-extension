@@ -21,3 +21,7 @@ function append_list_element(select, item) {
   select.appendChild(option);
   select.removeAttribute("disabled");
 }
+
+function validate_email(email) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email);
+}

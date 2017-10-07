@@ -70,7 +70,7 @@ function add_forward_address() {
   var forwards = get_forwards();
   var input = document.getElementById("forwards-input");
   var forward = strip_string(input.value);
-  if (forward && forwards.indexOf(forward) === -1) {
+  if (forward && validate_email(forward) && forwards.indexOf(forward) === -1) {
     var select = document.getElementById("forwards");
     prepend_list_element(select, forward);
     select.removeAttribute("disabled");
@@ -89,15 +89,24 @@ function remove_forward_address() {
 (function() {
   document.addEventListener("DOMContentLoaded", restore_options);
 
-  document.getElementById("forwards-submit").addEventListener(
-    "click", add_forward_address);
-  document.getElementById("forwards-input").addEventListener(
-    "keydown", function(element) {
-      if (event.keyCode === 13) {
-        add_forward_address();
-      }
+  var submit = document.getElementById("forwards-submit");
+  submit.addEventListener("click", add_forward_address);
+
+  var input = document.getElementById("forwards-input");
+  input.addEventListener("keypress", function() {
+    // Check for enter key.
+    if (event.keyCode === 13) {
+      add_forward_address();
     }
-  );
+  });
+  input.addEventListener("input", function() {
+    var email = strip_string(input.value);
+    if (validate_email(email)) {
+      submit.removeAttribute("disabled");
+    } else {
+      submit.setAttribute("disabled", true);
+    }
+  });
   document.getElementById("remove-submit").addEventListener(
     "click", remove_forward_address);
   document.getElementById("save").addEventListener("click", save_options);
