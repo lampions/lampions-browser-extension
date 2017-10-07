@@ -9,6 +9,23 @@ function get_forwards() {
   return forwards;
 }
 
+function push_status_message(message, success) {
+  var status = document.getElementById("status");
+  // Show the status label but also schedule adding the fade-out class to the
+  // element to hide the label again.
+  status.innerHTML = message;
+  if (success) {
+    status.className = "success";
+  } else {
+    status.className = "failure";
+  }
+  status.style.opacity = 1;
+  setTimeout(function(status) {
+    status.className += " fade-out";
+    status.style.opacity = 0;
+  }, 1000, status);
+}
+
 // Saves options to chrome.storage.sync.
 function save_options() {
   var forwards = get_forwards();
@@ -19,18 +36,16 @@ function save_options() {
     "domain": domain,
     "api_key": api_key
   }, function() {
-    // TODO: We need to check here if we have any routes defined that still use
-    //       a no longer defined forward address. Easiest solution would be to
-    //       highlight a route as invalid to prompt user interaction.
-    var status = document.getElementById("status");
-    // Show the status label but also schedule adding the fade-out class to the
-    // element to hide the label again.
-    status.className = "";
-    status.style.opacity = 1;
-    setTimeout(function(status) {
-      status.className = "fade-out";
-      status.style.opacity = 0;
-    }, 1000, status);
+    var message = null;
+    var success = null;
+    if (chrome.runtime.lastError) {
+      message = "Failed to save options!";
+      success = false;
+    } else {
+      message = "Options saved!";
+      success = true;
+    }
+    push_status_message(message, success);
   });
 }
 
