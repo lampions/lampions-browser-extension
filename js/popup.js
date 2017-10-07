@@ -32,21 +32,11 @@ function add_route() {
   if (!forward) {
     return;
   }
-  chrome.storage.sync.get({
-    "domain": "",
-    "api_key": "",
-  }, function(items) {
-    if (items.domain && items.api_key) {
-      set_route(items.domain, items.api_key, alias, forward, "accept").then(
-      function(result) {
-        if (result.status === 400) {
-          console.log("Failure");
-        } else {
-          console.log("Success: " + result.status);
-        }
-        console.log(result.response.message);
-      });
-    }
+
+  set_route(alias, forward, "accept").then(function() {
+    console.log("Success");
+  }).catch(function() {
+    console.log("Something failed");
   });
 }
 
@@ -63,15 +53,38 @@ function update_routes(routes) {
       tr.appendChild(td);
     });
 
-    // Append the action field.
+    // Append the state checkbox.
     var td = document.createElement("td");
-    td.innerHTML = route.action;
+    var checkbox = document.createElement("input");
+    checkbox.type = "checkbox";
+    checkbox.dataset.alias = route.id;
+    checkbox.onchange = function() {
+      var checked = checkbox.checked;
+      td.removeChild(checkbox);
+      td.className = "spinner";
+
+      // update_routes(checkbox.dataset.id, !checked)
+      //   .then(function() {
+      //   })
+      //   .catch(function() {
+      //   });
+    };
+    // TODO: Replace the "action" attribute with a boolean "active" flag.
+    if (route.action === "accept") {
+      checkbox.checked = true;
+    }
+    td.appendChild(checkbox);
     tr.appendChild(td);
 
     // Append a button to remove a route.
-    var td = document.createElement("td");
-    td.innerHTML = "x"
-    tr.appendChild(td);
+    // XXX: Run this in an anonymous function for now so we don't override td.
+    (function() {
+      var td = document.createElement("td");
+      var button = document.createElement("div");
+      button.className = "remove-button icon-remove";
+      td.appendChild(button);
+      tr.appendChild(td);
+    })();
 
     // Append the row.
     table.appendChild(tr);
@@ -79,12 +92,11 @@ function update_routes(routes) {
 }
 
 (function() {
-  document.getElementById("settings").addEventListener("click", function() {
-    chrome.runtime.openOptionsPage();
-  });
-  document.getElementById("add").addEventListener("click", add_route);
-
   document.addEventListener("DOMContentLoaded", function() {
     initialize_ui();
+  });
+  document.getElementById("add").addEventListener("click", add_route);
+  document.getElementById("settings").addEventListener("click", function() {
+    chrome.runtime.openOptionsPage();
   });
 })();

@@ -1,21 +1,25 @@
 <!doctype html>
 <html>
   <head>
-    <link href="https://fonts.googleapis.com/css?family=Cantarell" rel="stylesheet">
+    <link rel="stylesheet" type="text/css" href="css/widgets.css">
     <link rel="stylesheet" type="text/css" href="css/style.css">
     <link rel="stylesheet" type="text/css" href="css/fonts.css">
   </head>
   <body>
     <div id="controls">
-      <input id="alias" type="text" placeholder="Alias"></input>
-      <label id="domain"></label>
-      <br>
-      <select id="forwards"></select>
-      <button id="add" type="submit"><span class="icon-add"></span></button>
-      <button id="settings" type="submit"><span class="icon-settings"></span></button>
+      <div class="controls">
+        <label id="domain"></label>
+        <div class="no-overflow">
+          <input id="alias" type="text" placeholder="Alias"></input>
+        </div>
+      </div>
+      <div class="controls">
+        <button id="add" type="submit">Add</button>
+        <div class="no-overflow">
+          <select id="forwards"></select>
+        </div>
+      </div>
     </div>
-
-    <hr>
 
     <div id="routes">
       <table>
@@ -23,13 +27,18 @@
           <tr>
             <th>Alias</th>
             <th>Address</th>
-            <th>Action</th>
+            <th>Forward</th>
             <th></th>
           </tr>
           <tbody id="routes-table">
           </tbody>
         </thead>
       </table>
+    </div>
+
+    <div class="controls">
+      <button id="settings" type="submit">Settings</button>
+      <span id="status"></span>
     </div>
 
     <script src="js/utils.js"></script>

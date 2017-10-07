@@ -14,37 +14,66 @@ API.prototype = {
   }
 }
 
-function fetch_routes(domain, api_key) {
-  var api = new API(api_key);
-
+function get_api_data() {
   return new Promise(function(resolve, reject) {
-    var xhr = api.api_call("GET", "/routes");
-    xhr.onload = function() {
-      var response = JSON.parse(xhr.responseText);
-      var routes = [];
-      for (var i = 0; i < response.total_count; ++i) {
-        var route = response.items[i];
-        // Routes defined through this extension store metadata as json-encoded
-        // description fields on mailgun. This way we can implement the "drop"
-        // behavior of routes where we remove the "forward" action of a route
-        // while retaining the information about the original forward in the
-        // description.
-        try {
-          var route_description = JSON.parse(route.description);
-        } catch (exc) {
-          continue;
-        }
-        routes.push(route_description);
+    chrome.storage.sync.get({"domain": "", "api_key": ""}, function(items) {
+      if (items.domain && items.api_key) {
+        resolve(items);
+      } else {
+        reject();
       }
-      resolve(routes);
-    };
-    xhr.onerror = function() {
-      reject(xhr);
-    };
-    var data = new FormData();
-    data.append("limit", 0);
-    xhr.send(data);
+    });
   });
+}
+
+function fetch_routes() {
+  return get_api_data().then(function(items) {
+    var domain = items.domain;
+    var api_key = items.api_key;
+
+    return new Promise(function(resolve, reject) {
+      var api = new API(api_key);
+      var xhr = api.api_call("GET", "/routes");
+      xhr.onload = function() {
+        var response = JSON.parse(xhr.responseText);
+        var routes = [];
+        for (var i = 0; i < response.total_count; ++i) {
+          var route = response.items[i];
+          var route_description = parse_metadata(route.description);
+          if (route_description) {
+            route_description.id = route.id;
+            routes.push(route_description);
+          }
+        }
+        resolve(routes);
+      };
+      xhr.onerror = function() {
+        reject();
+      };
+      var data = new FormData();
+      data.append("limit", 0);
+      xhr.send(data);
+    });
+  });
+}
+
+function parse_metadata(data) {
+  // Routes defined through this extension store metadata as json-encoded
+  // description fields on mailgun. This way we can implement the "drop"
+  // behavior of routes where we remove the "forward" action of a route while
+  // retaining the information about the original forward in the description.
+  try {
+    var route_description = JSON.parse(data);
+  } catch (exc) {
+    return null;
+  }
+
+  if (!route_description.alias ||
+      !route_description.forward ||
+      !route_description.action) {
+    return null;
+  }
+  return route_description;
 }
 
 function construct_metadata(alias, forward, action) {
@@ -55,35 +84,46 @@ function construct_metadata(alias, forward, action) {
   });
 }
 
-function set_route(domain, api_key, alias, forward, action) {
-  var description = construct_metadata(alias, forward, action);
-  var expression = "match_recipient('" + alias + "@" + domain + "')";
-  var actions = ["stop()"];
-  if (action === "accept") {
-    actions.unshift("forward('" + forward + "')");
-  }
-  var data = new FormData();
-  data.append("description", description);
-  data.append("expression", expression);
-  actions.forEach(function(action) {
-    data.append("action", action);
+function update_route(id, active) {
+  return get_api_data().then(function(domain, api_key) {
+    var api = new API();
   });
+}
 
-  // TODO: Check that we don't already have a route in place for the
-  //       combination of alias/forward. If we do, make a PUT request instead
-  //       to update the route as per the mailgun API.
+function set_route(alias, forward, action) {
+  return get_api_data().then(function(items) {
+    var domain = items.domain;
+    var api_key = items.api_key;
 
-  var api = new API(api_key);
+    var description = construct_metadata(alias, forward, action);
+    var expression = "match_recipient('" + alias + "@" + domain + "')";
+    var actions = ["stop()"];
+    if (action === "accept") {
+      actions.unshift("forward('" + forward + "')");
+    }
+    var data = new FormData();
+    data.append("description", description);
+    data.append("expression", expression);
+    actions.forEach(function(action) {
+      data.append("action", action);
+    });
 
-  return new Promise(function(resolve, reject) {
-    var xhr = api.api_call("POST", "/routes", api_key);
-    xhr.onload = function() {
-      var response = JSON.parse(xhr.responseText);
-      resolve({"status": xhr.status, "response": response});
-    };
-    xhr.onerror = function() {
-      reject(xhr);
-    };
-    xhr.send(data);
+    var api = new API(api_key);
+
+    return new Promise(function(resolve, reject) {
+      var xhr = api.api_call("POST", "/routes", api_key);
+      xhr.onload = function() {
+        var response = JSON.parse(xhr.responseText);
+        if (xhr.status === 200) {
+          resolve();
+        } else {
+          reject();
+        }
+      };
+      xhr.onerror = function() {
+        reject(xhr);
+      };
+      xhr.send(data);
+    });
   });
 }

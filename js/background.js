@@ -1,13 +1,6 @@
 function synchronize_data() {
-  chrome.storage.sync.get({
-    "domain": "",
-    "api_key": ""
-  }, function(items) {
-    if (items.domain && items.api_key) {
-      fetch_routes(items.domain, items.api_key).then(function(routes) {
-        chrome.storage.local.set({"routes": routes});
-      });
-    }
+  fetch_routes().then(function(routes) {
+    chrome.storage.local.set({"routes": routes});
   });
 }
 
