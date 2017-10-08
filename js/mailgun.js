@@ -1,19 +1,6 @@
 const BASE_URL = "https://api.mailgun.net/v3";
 
-function API(api_key) {
-  this._api_key = api_key;
-}
-
-API.prototype = {
-  api_call: function(method, endpoint) {
-    var xhr = new XMLHttpRequest();
-    var endpoint = "/routes";
-    var url = BASE_URL + endpoint;
-    xhr.open(method, url, true, "api", this._api_key);
-    return xhr;
-  }
-}
-
+// TODO: Pull this into the API object as well.
 function get_api_data() {
   return new Promise(function(resolve, reject) {
     chrome.storage.sync.get({"domain": "", "api_key": ""}, function(items) {
@@ -26,33 +13,84 @@ function get_api_data() {
   });
 }
 
+// TODO: Rename this.
+function API(api_key) {
+  this._api_key = api_key;
+}
+
+API.prototype = {
+  // TODO: Get rid of this.
+  api_call: function(method, endpoint) {
+    var xhr = new XMLHttpRequest();
+    var url = BASE_URL + endpoint;
+    xhr.open(method, url, true, "api", this._api_key);
+    return xhr;
+  },
+
+  _build_xhr: function(method, endpoint) {
+    return this.api_call(method, endpoint);
+  },
+
+  // TODO: Add a method to marshal an object into FormData.
+
+  _resolve_request: function(xhr, data) {
+    return new Promise(function(resolve, reject) {
+      xhr.onload = function() {
+        var response = JSON.parse(xhr.responseText);
+        if (xhr.status === 200) {
+          resolve(response);
+        } else {
+          reject(response);
+        }
+      };
+      xhr.onerror = function() {
+        reject();
+      };
+      xhr.send(data);
+    }.bind(this));
+  },
+
+  get: function(endpoint, data) {
+    var xhr = this._build_xhr("GET", endpoint);
+    return this._resolve_request(xhr, data);
+  },
+
+  post: function(endpoint, data) {
+    var xhr = this._build_xhr("POST", endpoint);
+    return this._resolve_request(xhr, data);
+  },
+
+  put: function(endpoint, data) {
+    var xhr = this._build_xhr("PUT", endpoint);
+    return this._resolve_request(xhr, data);
+  },
+
+  delete: function(endpoint, data) {
+    var xhr = this._build_xhr("DELETE", endpoint);
+    return this._resolve_request(xhr, data);
+  }
+}
+
 function fetch_routes() {
   return get_api_data().then(function(items) {
     var domain = items.domain;
     var api_key = items.api_key;
 
-    return new Promise(function(resolve, reject) {
-      var api = new API(api_key);
-      var xhr = api.api_call("GET", "/routes");
-      xhr.onload = function() {
-        var response = JSON.parse(xhr.responseText);
-        var routes = [];
-        for (var i = 0; i < response.total_count; ++i) {
-          var route = response.items[i];
-          var route_description = parse_metadata(route.description);
-          if (route_description) {
-            route_description.id = route.id;
-            routes.push(route_description);
-          }
+    var data = new FormData();
+    data.append("limit", 0);
+
+    var api = new API(api_key);
+    return api.get("/routes", data).then(function(response) {
+      var routes = [];
+      for (var i = 0; i < response.total_count; ++i) {
+        var route = response.items[i];
+        var route_description = parse_metadata(route.description);
+        if (route_description) {
+          route_description.id = route.id;
+          routes.push(route_description);
         }
-        resolve(routes);
-      };
-      xhr.onerror = function() {
-        reject();
-      };
-      var data = new FormData();
-      data.append("limit", 0);
-      xhr.send(data);
+      }
+      return routes;
     });
   });
 }
@@ -68,39 +106,57 @@ function parse_metadata(data) {
     return null;
   }
 
-  if (!route_description.alias ||
-      !route_description.forward ||
-      !route_description.action) {
-    return null;
+  var attributes = ["alias", "forward", "active"];
+  for (var key in attributes) {
+    var attribute = attributes[key];
+    if (route_description[attribute] === undefined) {
+      return null;
+    }
   }
   return route_description;
 }
 
-function construct_metadata(alias, forward, action) {
+function construct_metadata(alias, forward, active) {
   return JSON.stringify({
     "alias": alias,
     "forward": forward,
-    "action": action
+    "active": active
   });
 }
 
-function update_route(id, active) {
-  return get_api_data().then(function(domain, api_key) {
-    var api = new API();
+function update_route(id, alias, active) {
+  return get_api_data().then(function(items) {
+    // XXX:
+    var up = new Error("NotImplemented");
+    throw up;
+
+    var domain = items.domain;
+    var api_key = items.api_key;
+
+    var action = ["stop()"];
+    // TODO: Update the metadata.
+    if (active) {
+      action.unshift("");
+    }
+    var data = new FormData();
+    data.append("action", action);
+
+    var api = new API(api_key);
+    return api.put("/routes", data);
   });
 }
 
-function set_route(alias, forward, action) {
+// TODO: Rename this.
+function set_route(alias, forward) {
   return get_api_data().then(function(items) {
     var domain = items.domain;
     var api_key = items.api_key;
 
-    var description = construct_metadata(alias, forward, action);
+    // TODO: Factor this out so we can re-use it in "update_route".
+    var description = construct_metadata(alias, forward, true);
     var expression = "match_recipient('" + alias + "@" + domain + "')";
-    var actions = ["stop()"];
-    if (action === "accept") {
-      actions.unshift("forward('" + forward + "')");
-    }
+    var actions = ["forward('" + forward + "')", "stop()"];
+
     var data = new FormData();
     data.append("description", description);
     data.append("expression", expression);
@@ -109,21 +165,15 @@ function set_route(alias, forward, action) {
     });
 
     var api = new API(api_key);
+    return api.post("/routes", data);
+  });
+}
 
-    return new Promise(function(resolve, reject) {
-      var xhr = api.api_call("POST", "/routes", api_key);
-      xhr.onload = function() {
-        var response = JSON.parse(xhr.responseText);
-        if (xhr.status === 200) {
-          resolve();
-        } else {
-          reject();
-        }
-      };
-      xhr.onerror = function() {
-        reject(xhr);
-      };
-      xhr.send(data);
-    });
+function remove_route(id) {
+  return get_api_data().then(function(items) {
+    var domain = items.domain;
+    var api_key = items.api_key;
+    var api = new API(api_key);
+    return api.delete("/routes/" + id);
   });
 }
