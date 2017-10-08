@@ -1,0 +1,16 @@
+#status {
+  padding-left: 1em;
+  opacity: 0;
+}
+
+.success {
+  color: green;
+}
+
+.failure {
+  color: red;
+}
+
+.fade-out {
+  transition: opacity 2.5s;
+}

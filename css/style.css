@@ -58,39 +58,16 @@ table tbody tr:nth-child(even) {
   background-color: rgba(0, 0, 50, 0.025);
 }
 
-@keyframes spinner {
-  to {
-    transform: rotate(360deg);
-  }
-}
-
-td div {
-  position: relative;
-}
-
-.spinner:before {
-  animation: spinner 0.75s linear infinite;
-  border: 1.5px solid #ccc;
-  border-radius: 50%;
-  border-top-color: #333;
-  box-sizing: border-box;
-  content: "";
-  height: 1.25em;
-  margin-top: -0.625em;
-  margin-left: -0.625em;
-  position: absolute;
-  width: 1.25em;
-}
-
-#status {
-  padding-left: 1em;
-}
-
 .remove-button {
-  cursor: pointer;
-  color: #333;
+  min-width: 0 !important;
 }
 
-.remove-button:hover {
-  color: #777;
+.insensitive {
+  opacity: 0.25;
+}
+
+select:disabled,
+input[type="checkbox"]:disabled,
+button:disabled {
+  opacity: 1;
 }

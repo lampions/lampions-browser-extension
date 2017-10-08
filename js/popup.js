@@ -21,22 +21,37 @@ function initialize_ui() {
 }
 
 function add_route() {
-  var alias = strip_string(document.getElementById("alias").value);
-  // TODO: Indicate an error in the UI.
+  var input = document.getElementById("alias");
+  var alias = strip_string(input.value);
   if (!alias) {
+    push_status_message("No alias given!", false);
     return;
   }
   var select = document.getElementById("forwards");
   var forward = select.options[select.selectedIndex].value;
-  // TODO: Indicate an error in the UI.
   if (!forward) {
+    push_status_message("No forward address selected!", false);
     return;
   }
 
+  // TODO: Check if a route exists!
+
+  var button = document.getElementById("add");
+  var elements = [input, select, button];
+  elements.forEach(function(element) {
+    set_element_sensitive_ex(element, false);
+  });
+
   set_route(alias, forward, "accept").then(function() {
-    console.log("Success");
+    input.value = "";
+    // TODO: Add the new route to the table.
+    push_status_message("Route added!", true);
   }).catch(function() {
-    console.log("Something failed");
+    push_status_message("Failed to add route!", false);
+  }).then(function() {
+    elements.forEach(function(element) {
+      set_element_sensitive_ex(element, true);
+    });
   });
 }
 
@@ -58,15 +73,21 @@ function update_routes(routes) {
     var checkbox = document.createElement("input");
     checkbox.type = "checkbox";
     checkbox.dataset.alias = route.id;
-    checkbox.onchange = function() {
-      var checked = checkbox.checked;
-      td.removeChild(checkbox);
-      td.className = "spinner";
-
+    checkbox.onmousedown = function() {
+      set_element_sensitive_ex(checkbox, false);
+      tr.className = "insensitive";
       // update_routes(checkbox.dataset.id, !checked)
       //   .then(function() {
+      //     // TODO: Update the status string.
+      //     checkbox.checked = !checked;
       //   })
       //   .catch(function() {
+      //     // TODO: Update the status string.
+      //     checkbox.checked = checked;
+      //   })
+      //   .then(function() {
+      //     set_element_sensitive_ex(checkbox, true);
+      //     tr.className = "";
       //   });
     };
     // TODO: Replace the "action" attribute with a boolean "active" flag.
@@ -80,7 +101,7 @@ function update_routes(routes) {
     // XXX: Run this in an anonymous function for now so we don't override td.
     (function() {
       var td = document.createElement("td");
-      var button = document.createElement("div");
+      var button = document.createElement("button");
       button.className = "remove-button icon-remove";
       td.appendChild(button);
       tr.appendChild(td);

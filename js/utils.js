@@ -25,3 +25,33 @@ function append_list_element(select, item) {
 function validate_email(email) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email);
 }
+
+function set_element_sensitive_ex(element, status) {
+  if (status) {
+    element.removeAttribute("disabled");
+  } else {
+    element.setAttribute("disabled", true);
+  }
+}
+
+function set_element_sensitive(id, status) {
+  var element = document.getElementById(id);
+  set_element_sensitive_ex(element, status);
+}
+
+function push_status_message(message, success) {
+  var status = document.getElementById("status");
+  // Show the status label but also schedule adding the fade-out class to the
+  // element to hide the label again.
+  status.innerHTML = message;
+  if (success) {
+    status.className = "success";
+  } else {
+    status.className = "failure";
+  }
+  status.style.opacity = 1;
+  setTimeout(function(status) {
+    status.className += " fade-out";
+    status.style.opacity = 0;
+  }, 1000, status);
+}
