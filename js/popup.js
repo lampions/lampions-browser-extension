@@ -52,10 +52,15 @@ function add_route() {
       set_element_sensitive_ex(element, false);
     });
 
-    set_route(alias, forward).then(function() {
+    set_route(alias, forward).then(function(response) {
+      var route = parse_metadata(response.route.description);
+      var tr = _create_table_row(route);
+      var table = document.getElementById("routes-table");
+      table.insertBefore(tr, table.firstChild);
+
       input.value = "";
-      // TODO: Add the new route to the table.
       push_status_message("Route added!", true);
+      synchronize_data();
     })
     .catch(function() {
       push_status_message("Failed to add route!", false);
@@ -68,79 +73,86 @@ function add_route() {
   });
 }
 
+function _create_table_row(route) {
+  var tr = document.createElement("tr");
+  ["alias", "forward"].forEach(function(key) {
+    var td = document.createElement("td");
+    td.innerHTML = route[key];
+    tr.appendChild(td);
+  });
+
+  // Append the state checkbox.
+  var td = document.createElement("td");
+  var checkbox = document.createElement("input");
+  checkbox.type = "checkbox";
+  checkbox.dataset.id = route.id;
+  checkbox.dataset.alias = route.alias;
+  if (route.active) {
+    checkbox.checked = true;
+  }
+  td.appendChild(checkbox);
+  tr.appendChild(td);
+
+  // Append a button to remove a route.
+  var td = document.createElement("td");
+  var button = document.createElement("button");
+  button.className = "remove-button icon-remove";
+  td.appendChild(button);
+  tr.appendChild(td);
+
+  // Connect signal handlers.
+  button.onmousedown = function() {
+    set_element_sensitive_ex(checkbox, false);
+    set_element_sensitive_ex(button, false);
+    tr.className = "insensitive";
+    remove_route(checkbox.dataset.id).then(function() {
+      var table = document.getElementById("routes-table");
+      table.removeChild(tr);
+      push_status_message("Route removed!", true);
+      synchronize_data();
+    })
+    .catch(function(msg) {
+      set_element_sensitive_ex(checkbox, true);
+      set_element_sensitive_ex(button, true);
+      tr.className = "";
+      push_status_message("Failed to remove route!", false);
+    });
+  };
+
+  checkbox.onmousedown = function() {
+    set_element_sensitive_ex(checkbox, false);
+    set_element_sensitive_ex(button, false);
+    tr.className = "insensitive";
+    var checked = checkbox.checked;
+    // TODO:
+    update_route(checkbox.dataset.id, checkbox.dataset.alias, !checked)
+      .then(function() {
+        checkbox.checked = !checked;
+        push_status_message("Route updated!", true);
+        synchronize_data();
+      })
+      .catch(function() {
+        checkbox.checked = checked;
+        push_status_message("Failed to update route!", false);
+      })
+      .then(function() {
+        set_element_sensitive_ex(checkbox, true);
+        set_element_sensitive_ex(button, true);
+        tr.className = "";
+      });
+  };
+
+  return tr;
+}
+
 function populate_routes_table(routes) {
   var table = document.getElementById("routes-table");
   while (table.firstChild) {
     table.removeChild(table.firstChild);
   }
   routes.forEach(function(route) {
-    var tr = document.createElement("tr");
-    ["alias", "forward"].forEach(function(key) {
-      var td = document.createElement("td");
-      td.innerHTML = route[key];
-      tr.appendChild(td);
-    });
-
-    // Append the state checkbox.
-    var td = document.createElement("td");
-    var checkbox = document.createElement("input");
-    checkbox.type = "checkbox";
-    checkbox.dataset.id = route.id;
-    checkbox.dataset.alias = route.alias;
-    if (route.active) {
-      checkbox.checked = true;
-    }
-    td.appendChild(checkbox);
-    tr.appendChild(td);
-
-    // Append a button to remove a route.
-    var td = document.createElement("td");
-    var button = document.createElement("button");
-    button.className = "remove-button icon-remove";
-    td.appendChild(button);
-    tr.appendChild(td);
-
-    // Append the row.
+    var tr = _create_table_row(route);
     table.appendChild(tr);
-
-    // Connect signal handlers.
-    button.onmousedown = function() {
-      set_element_sensitive_ex(checkbox, false);
-      set_element_sensitive_ex(button, false);
-      tr.className = "insensitive";
-      remove_route(checkbox.dataset.id).then(function() {
-        table.removeChild(tr);
-        push_status_message("Route removed!", true);
-      })
-      .catch(function(msg) {
-        set_element_sensitive_ex(checkbox, true);
-        set_element_sensitive_ex(button, true);
-        tr.className = "";
-        push_status_message("Failed to remove route!", false);
-      });
-    };
-
-    checkbox.onmousedown = function() {
-      set_element_sensitive_ex(checkbox, false);
-      set_element_sensitive_ex(button, false);
-      tr.className = "insensitive";
-      var checked = checkbox.checked;
-      // TODO:
-      update_route(checkbox.dataset.id, checkbox.dataset.alias, !checked)
-        .then(function() {
-          checkbox.checked = !checked;
-          push_status_message("Route updated!", true);
-        })
-        .catch(function() {
-          checkbox.checked = checked;
-          push_status_message("Failed to update route!", false);
-        })
-        .then(function() {
-          set_element_sensitive_ex(checkbox, true);
-          set_element_sensitive_ex(button, true);
-          tr.className = "";
-        });
-    };
   });
 }
 

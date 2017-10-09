@@ -150,3 +150,9 @@ function remove_route(id) {
     return api.delete("/routes/" + id);
   });
 }
+
+function synchronize_data() {
+  fetch_routes().then(function(routes) {
+    chrome.storage.local.set({"routes": routes});
+  });
+}
