@@ -1,39 +1,18 @@
 const BASE_URL = "https://api.mailgun.net/v3";
 
-// TODO: Pull this into the API object as well.
-function get_api_data() {
-  return new Promise(function(resolve, reject) {
-    chrome.storage.sync.get({"domain": "", "api_key": ""}, function(items) {
-      if (items.domain && items.api_key) {
-        resolve(items);
-      } else {
-        reject();
-      }
-    });
-  });
-}
-
 // TODO: Rename this.
-function API(api_key) {
+function API(domain, api_key) {
+  this.domain = domain;
   this._api_key = api_key;
 }
 
 API.prototype = {
-  // TODO: Get rid of this.
-  api_call: function(method, endpoint) {
+  // TODO: Add a method to marshal an object into FormData.
+
+  _resolve_request: function(method, endpoint, data) {
     var xhr = new XMLHttpRequest();
     var url = BASE_URL + endpoint;
     xhr.open(method, url, true, "api", this._api_key);
-    return xhr;
-  },
-
-  _build_xhr: function(method, endpoint) {
-    return this.api_call(method, endpoint);
-  },
-
-  // TODO: Add a method to marshal an object into FormData.
-
-  _resolve_request: function(xhr, data) {
     return new Promise(function(resolve, reject) {
       xhr.onload = function() {
         var response = JSON.parse(xhr.responseText);
@@ -47,39 +26,44 @@ API.prototype = {
         reject();
       };
       xhr.send(data);
-    }.bind(this));
+    });
   },
 
   get: function(endpoint, data) {
-    var xhr = this._build_xhr("GET", endpoint);
-    return this._resolve_request(xhr, data);
+    return this._resolve_request("GET", endpoint, data);
   },
 
   post: function(endpoint, data) {
-    var xhr = this._build_xhr("POST", endpoint);
-    return this._resolve_request(xhr, data);
+    return this._resolve_request("POST", endpoint, data);
   },
 
   put: function(endpoint, data) {
-    var xhr = this._build_xhr("PUT", endpoint);
-    return this._resolve_request(xhr, data);
+    return this._resolve_request("PUT", endpoint, data);
   },
 
   delete: function(endpoint, data) {
-    var xhr = this._build_xhr("DELETE", endpoint);
-    return this._resolve_request(xhr, data);
+    return this._resolve_request("DELETE", endpoint, data);
   }
 }
 
-function fetch_routes() {
-  return get_api_data().then(function(items) {
-    var domain = items.domain;
-    var api_key = items.api_key;
+function prepare_api_call() {
+  return new Promise(function(resolve, reject) {
+    chrome.storage.sync.get({"domain": "", "api_key": ""}, function(items) {
+      if (items.domain && items.api_key) {
+        var api = new API(items.domain, items.api_key);
+        resolve(api);
+      } else {
+        reject();
+      }
+    });
+  });
+}
 
+function fetch_routes() {
+  return prepare_api_call().then(function(api) {
     var data = new FormData();
     data.append("limit", 0);
 
-    var api = new API(api_key);
     return api.get("/routes", data).then(function(response) {
       var routes = [];
       for (var i = 0; i < response.total_count; ++i) {
@@ -125,13 +109,10 @@ function construct_metadata(alias, forward, active) {
 }
 
 function update_route(id, alias, active) {
-  return get_api_data().then(function(items) {
+  return prepare_api_call().then(function(api) {
     // XXX:
     var up = new Error("NotImplemented");
     throw up;
-
-    var domain = items.domain;
-    var api_key = items.api_key;
 
     var action = ["stop()"];
     // TODO: Update the metadata.
@@ -141,20 +122,16 @@ function update_route(id, alias, active) {
     var data = new FormData();
     data.append("action", action);
 
-    var api = new API(api_key);
     return api.put("/routes", data);
   });
 }
 
 // TODO: Rename this.
 function set_route(alias, forward) {
-  return get_api_data().then(function(items) {
-    var domain = items.domain;
-    var api_key = items.api_key;
-
+  return prepare_api_call().then(function(api) {
     // TODO: Factor this out so we can re-use it in "update_route".
     var description = construct_metadata(alias, forward, true);
-    var expression = "match_recipient('" + alias + "@" + domain + "')";
+    var expression = "match_recipient('" + alias + "@" + api.domain + "')";
     var actions = ["forward('" + forward + "')", "stop()"];
 
     var data = new FormData();
@@ -164,16 +141,12 @@ function set_route(alias, forward) {
       data.append("action", action);
     });
 
-    var api = new API(api_key);
     return api.post("/routes", data);
   });
 }
 
 function remove_route(id) {
-  return get_api_data().then(function(items) {
-    var domain = items.domain;
-    var api_key = items.api_key;
-    var api = new API(api_key);
+  return prepare_api_call().then(function(api) {
     return api.delete("/routes/" + id);
   });
 }
