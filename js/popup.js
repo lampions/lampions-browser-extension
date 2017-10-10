@@ -52,15 +52,14 @@ function add_route() {
       set_element_sensitive_ex(element, false);
     });
 
-    set_route(alias, forward).then(function(response) {
-      var route = parse_metadata(response.route.description);
+    Mailgun.add_route(alias, forward).then(function(route) {
       var tr = _create_table_row(route);
       var table = document.getElementById("routes-table");
       table.insertBefore(tr, table.firstChild);
 
       input.value = "";
       push_status_message("Route added!", true);
-      synchronize_data();
+      Mailgun.synchronize_data();
     })
     .catch(function() {
       push_status_message("Failed to add route!", false);
@@ -105,11 +104,13 @@ function _create_table_row(route) {
     set_element_sensitive_ex(checkbox, false);
     set_element_sensitive_ex(button, false);
     tr.className = "insensitive";
-    remove_route(checkbox.dataset.id).then(function() {
+    // FIXME: Removing a route that was just added fails without reloading the.
+    //        popup fails.
+    Mailgun.remove_route(checkbox.dataset.id).then(function() {
       var table = document.getElementById("routes-table");
       table.removeChild(tr);
       push_status_message("Route removed!", true);
-      synchronize_data();
+      Mailgun.synchronize_data();
     })
     .catch(function(msg) {
       set_element_sensitive_ex(checkbox, true);
@@ -125,11 +126,11 @@ function _create_table_row(route) {
     tr.className = "insensitive";
     var checked = checkbox.checked;
     // TODO:
-    update_route(checkbox.dataset.id, checkbox.dataset.alias, !checked)
+    Mailgun.update_route(checkbox.dataset.id, checkbox.dataset.alias, !checked)
       .then(function() {
         checkbox.checked = !checked;
         push_status_message("Route updated!", true);
-        synchronize_data();
+        Mailgun.synchronize_data();
       })
       .catch(function() {
         checkbox.checked = checked;
