@@ -1,14 +1,29 @@
 const Mailgun = (function() {
   const BASE_URL = "https://api.mailgun.net/v3";
 
-  // TODO: Rename this.
   function API(domain, api_key) {
     this.domain = domain;
     this._api_key = api_key;
   }
 
   API.prototype = {
-    // TODO: Add a method to marshal an object into FormData.
+    _marshal_data: function(args) {
+      if (args === undefined) {
+        return;
+      }
+      var data = new FormData();
+      for (var arg in args) {
+        var value = args[arg];
+        if (Array.isArray(value)) {
+          value.forEach(function(v) {
+            data.append(arg, v);
+          });
+        } else {
+          data.append(arg, value);
+        }
+      }
+      return data;
+    },
 
     _resolve_request: function(method, endpoint, data) {
       var xhr = new XMLHttpRequest();
@@ -26,8 +41,8 @@ const Mailgun = (function() {
         xhr.onerror = function() {
           reject();
         };
-        xhr.send(data);
-      });
+        xhr.send(this._marshal_data(data));
+      }.bind(this));
     },
 
     get: function(endpoint, data) {
@@ -91,10 +106,7 @@ const Mailgun = (function() {
 
   function fetch_routes() {
     return prepare_api_call().then(function(api) {
-      var data = new FormData();
-      data.append("limit", 0);
-
-      return api.get("/routes", data).then(function(response) {
+      return api.get("/routes", {"limit": 0}).then(function(response) {
         var routes = [];
         for (var i = 0; i < response.total_count; ++i) {
           var route = response.items[i];
@@ -132,15 +144,12 @@ const Mailgun = (function() {
       // TODO: Factor this out so we can re-use it in "update_route".
       var description = construct_metadata(alias, forward, true);
       var expression = "match_recipient('" + alias + "@" + api.domain + "')";
-      var actions = ["forward('" + forward + "')", "stop()"];
-
-      var data = new FormData();
-      data.append("description", description);
-      data.append("expression", expression);
-      actions.forEach(function(action) {
-        data.append("action", action);
-      });
-
+      var action = ["forward('" + forward + "')", "stop()"];
+      var data = {
+        "description": description,
+        "expression": expression,
+        "action": action
+      }
       return api.post("/routes", data).then(function(response) {
         return parse_metadata(response.route.description);
       });
