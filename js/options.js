@@ -28,7 +28,7 @@ function save_options() {
       message = "Options saved!";
       success = true;
     }
-    push_status_message(message, success);
+    Utils.push_status_message(message, success);
   });
 }
 
@@ -41,8 +41,8 @@ function restore_options() {
     var select = document.getElementById("forwards");
     select.setAttribute("disabled", true);
     items.forwards.forEach(function(item) {
-      append_list_element(select, item);
-      set_element_sensitive_ex(select, true);
+      Utils.append_list_element(select, item);
+      Utils.set_element_sensitive_ex(select, true);
     }.bind(select));
     document.getElementById("domain").value = items.domain;
     document.getElementById("api-key").value = items.api_key;
@@ -52,13 +52,15 @@ function restore_options() {
 function add_forward_address() {
   var forwards = get_forwards();
   var input = document.getElementById("forwards-input");
-  var forward = strip_string(input.value);
-  if (forward && validate_email(forward) && forwards.indexOf(forward) === -1) {
+  var forward = Utils.strip_string(input.value);
+  if (forward &&
+      Utils.validate_email(forward) &&
+      forwards.indexOf(forward) === -1) {
     var select = document.getElementById("forwards");
-    prepend_list_element(select, forward);
-    set_element_sensitive("forwards-submit", false);
-    set_element_sensitive_ex(select, true);
-    set_element_sensitive("remove-submit", true);
+    Utils.prepend_list_element(select, forward);
+    Utils.set_element_sensitive("forwards-submit", false);
+    Utils.set_element_sensitive_ex(select, true);
+    Utils.set_element_sensitive("remove-submit", true);
     input.value = "";
   }
 }
@@ -67,8 +69,8 @@ function remove_forward_address() {
   var select = document.getElementById("forwards");
   select.remove(select.selectedIndex);
   if (select.options.length === 0) {
-    set_element_sensitive_ex(select, false);
-    set_element_sensitive("remove-submit", false);
+    Utils.set_element_sensitive_ex(select, false);
+    Utils.set_element_sensitive("remove-submit", false);
   }
 }
 
@@ -86,8 +88,8 @@ function remove_forward_address() {
     }
   });
   input.addEventListener("input", function() {
-    var email = strip_string(input.value);
-    set_element_sensitive_ex(submit, validate_email(email));
+    var email = Utils.strip_string(input.value);
+    Utils.set_element_sensitive_ex(submit, Utils.validate_email(email));
   });
   document.getElementById("remove-submit").addEventListener(
     "click", remove_forward_address);

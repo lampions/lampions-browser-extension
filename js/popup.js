@@ -9,7 +9,7 @@ function initialize_ui() {
     }
     var select = document.getElementById("forwards");
     items.forwards.forEach(function(item) {
-      append_list_element(select, item);
+      Utils.append_list_element(select, item);
     });
   });
 
@@ -22,15 +22,15 @@ function initialize_ui() {
 
 function add_route() {
   var input = document.getElementById("alias");
-  var alias = strip_string(input.value);
+  var alias = Utils.strip_string(input.value);
   if (!alias) {
-    push_status_message("No alias given!", false);
+    Utils.push_status_message("No alias given!", false);
     return;
   }
   var select = document.getElementById("forwards");
   var forward = select.options[select.selectedIndex].value;
   if (!forward) {
-    push_status_message("No forward address selected!", false);
+    Utils.push_status_message("No forward address selected!", false);
     return;
   }
 
@@ -41,7 +41,7 @@ function add_route() {
     for (var i in routes) {
       var route = routes[i];
       if (route.alias === alias) {
-        push_status_message("Route already defined!", false);
+        Utils.push_status_message("Route already defined!", false);
         return;
       }
     }
@@ -49,7 +49,7 @@ function add_route() {
     var button = document.getElementById("add");
     var elements = [input, select, button];
     elements.forEach(function(element) {
-      set_element_sensitive_ex(element, false);
+      Utils.set_element_sensitive_ex(element, false);
     });
 
     Mailgun.add_route(alias, forward).then(function(route) {
@@ -58,15 +58,15 @@ function add_route() {
       table.insertBefore(tr, table.firstChild);
 
       input.value = "";
-      push_status_message("Route added!", true);
+      Utils.push_status_message("Route added!", true);
       Mailgun.synchronize_data();
     })
     .catch(function() {
-      push_status_message("Failed to add route!", false);
+      Utils.push_status_message("Failed to add route!", false);
     })
     .then(function() {
       elements.forEach(function(element) {
-        set_element_sensitive_ex(element, true);
+        Utils.set_element_sensitive_ex(element, true);
       });
     });
   });
@@ -101,44 +101,44 @@ function _create_table_row(route) {
 
   // Connect signal handlers.
   button.onmousedown = function() {
-    set_element_sensitive_ex(checkbox, false);
-    set_element_sensitive_ex(button, false);
+    Utils.set_element_sensitive_ex(checkbox, false);
+    Utils.set_element_sensitive_ex(button, false);
     tr.className = "insensitive";
     // FIXME: Removing a route that was just added fails without reloading the.
     //        popup fails.
     Mailgun.remove_route(checkbox.dataset.id).then(function() {
       var table = document.getElementById("routes-table");
       table.removeChild(tr);
-      push_status_message("Route removed!", true);
+      Utils.push_status_message("Route removed!", true);
       Mailgun.synchronize_data();
     })
     .catch(function(msg) {
-      set_element_sensitive_ex(checkbox, true);
-      set_element_sensitive_ex(button, true);
+      Utils.set_element_sensitive_ex(checkbox, true);
+      Utils.set_element_sensitive_ex(button, true);
       tr.className = "";
-      push_status_message("Failed to remove route!", false);
+      Utils.push_status_message("Failed to remove route!", false);
     });
   };
 
   checkbox.onmousedown = function() {
-    set_element_sensitive_ex(checkbox, false);
-    set_element_sensitive_ex(button, false);
+    Utils.set_element_sensitive_ex(checkbox, false);
+    Utils.set_element_sensitive_ex(button, false);
     tr.className = "insensitive";
     var checked = checkbox.checked;
     // TODO:
     Mailgun.update_route(checkbox.dataset.id, checkbox.dataset.alias, !checked)
       .then(function() {
         checkbox.checked = !checked;
-        push_status_message("Route updated!", true);
+        Utils.push_status_message("Route updated!", true);
         Mailgun.synchronize_data();
       })
       .catch(function() {
         checkbox.checked = checked;
-        push_status_message("Failed to update route!", false);
+        Utils.push_status_message("Failed to update route!", false);
       })
       .then(function() {
-        set_element_sensitive_ex(checkbox, true);
-        set_element_sensitive_ex(button, true);
+        Utils.set_element_sensitive_ex(checkbox, true);
+        Utils.set_element_sensitive_ex(button, true);
         tr.className = "";
       });
   };
