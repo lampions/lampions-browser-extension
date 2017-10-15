@@ -165,7 +165,7 @@ const Mailgun = (function() {
   function synchronize_data() {
     fetch_routes().then(function(routes) {
       chrome.storage.local.set({"routes": routes});
-    });
+    }).catch(function() {});
   }
 
   return Object.freeze({
