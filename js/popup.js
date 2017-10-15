@@ -124,15 +124,13 @@ function _create_table_row(route) {
     var id = checkbox.dataset.id;
 
     var promise = new Promise(function(resolve, reject) {
-      chrome.storage.local.get({"routes": null}, function(items) {
+      chrome.storage.local.get({"routes": []}, function(items) {
         var route = null;
-        if (items.routes) {
-          for (var k in items.routes) {
-            var entry = items.routes[k];
-            if (entry.id === id) {
-              route = entry;
-              break;
-            }
+        for (var k in items.routes) {
+          var entry = items.routes[k];
+          if (entry.id === id) {
+            route = entry;
+            break;
           }
         }
         if (!route) {
