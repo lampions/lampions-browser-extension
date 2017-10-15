@@ -28,11 +28,12 @@ function add_route() {
     return;
   }
   var select = document.getElementById("forwards");
-  var forward = select.options[select.selectedIndex].value;
-  if (!forward) {
+  var option = select.options[select.selectedIndex];
+  if (!option) {
     Utils.push_status_message("No forward address selected!", false);
     return;
   }
+  var forward = option.value;
 
   // TODO: Wrap this in a promise so we can chain it in "add_route" and
   //       "update_route".
