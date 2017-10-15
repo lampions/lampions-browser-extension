@@ -35,11 +35,11 @@ const Mailgun = (function() {
           if (xhr.status === 200) {
             resolve(response);
           } else {
-            reject(response);
+            reject(response.error);
           }
         };
         xhr.onerror = function() {
-          reject();
+          reject("AJAX call failed");
         };
         xhr.send(this._marshal_data(data));
       }.bind(this));
@@ -69,7 +69,7 @@ const Mailgun = (function() {
           var api = new API(items.domain, items.api_key);
           resolve(api);
         } else {
-          reject();
+          reject("Failed to obtain domain and API key from sync storage");
         }
       });
     });
@@ -121,37 +121,39 @@ const Mailgun = (function() {
     });
   }
 
-  function update_route(id, alias, active) {
+  function prepare_route_api_data(alias, forward, active, domain) {
+    var description = construct_metadata(alias, forward, active);
+    var expression = "match_recipient('" + alias + "@" + domain + "')";
+    var action = ["stop()"];
+    if (active) {
+      action.unshift("forward('" + forward + "')");
+    }
+    return {
+      "description": description,
+      "expression": expression,
+      "action": action
+    };
+  }
+
+  function update_route(route, active) {
     return prepare_api_call().then(function(api) {
-      // XXX:
-      var up = new Error("NotImplemented");
-      throw up;
-
-      var action = ["stop()"];
-      // TODO: Update the metadata.
-      if (active) {
-        action.unshift("");
-      }
-      var data = new FormData();
-      data.append("action", action);
-
-      return api.put("/routes", data);
+      var data = prepare_route_api_data(
+        route.alias, route.forward, active, api.domain);
+      return api.put("/routes/" + route.id, data).then(function(response) {
+        var updated_route = parse_metadata(response.description);
+        updated_route.id = route.id;
+        return updated_route;
+      });
     });
   }
 
   function add_route(alias, forward) {
     return prepare_api_call().then(function(api) {
-      // TODO: Factor this out so we can re-use it in "update_route".
-      var description = construct_metadata(alias, forward, true);
-      var expression = "match_recipient('" + alias + "@" + api.domain + "')";
-      var action = ["forward('" + forward + "')", "stop()"];
-      var data = {
-        "description": description,
-        "expression": expression,
-        "action": action
-      }
+      var data = prepare_route_api_data(alias, forward, true, api.domain);
       return api.post("/routes", data).then(function(response) {
-        return parse_metadata(response.route.description);
+        var route = parse_metadata(response.route.description);
+        route.id = response.route.id;
+        return route;
       });
     });
   }

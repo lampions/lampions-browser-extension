@@ -35,8 +35,6 @@ function add_route() {
   }
   var forward = option.value;
 
-  // TODO: Wrap this in a promise so we can chain it in "add_route" and
-  //       "update_route".
   chrome.storage.local.get({"routes": []}, function(items) {
     var routes = items.routes;
     for (var i in routes) {
@@ -86,7 +84,6 @@ function _create_table_row(route) {
   var checkbox = document.createElement("input");
   checkbox.type = "checkbox";
   checkbox.dataset.id = route.id;
-  checkbox.dataset.alias = route.alias;
   if (route.active) {
     checkbox.checked = true;
   }
@@ -105,8 +102,6 @@ function _create_table_row(route) {
     Utils.set_element_sensitive_ex(checkbox, false);
     Utils.set_element_sensitive_ex(button, false);
     tr.className = "insensitive";
-    // FIXME: Removing a route that was just added fails without reloading the.
-    //        popup fails.
     Mailgun.remove_route(checkbox.dataset.id).then(function() {
       var table = document.getElementById("routes-table");
       table.removeChild(tr);
@@ -126,22 +121,42 @@ function _create_table_row(route) {
     Utils.set_element_sensitive_ex(button, false);
     tr.className = "insensitive";
     var checked = checkbox.checked;
-    // TODO:
-    Mailgun.update_route(checkbox.dataset.id, checkbox.dataset.alias, !checked)
-      .then(function() {
-        checkbox.checked = !checked;
-        Utils.push_status_message("Route updated!", true);
-        Mailgun.synchronize_data();
-      })
-      .catch(function() {
-        checkbox.checked = checked;
-        Utils.push_status_message("Failed to update route!", false);
-      })
-      .then(function() {
-        Utils.set_element_sensitive_ex(checkbox, true);
-        Utils.set_element_sensitive_ex(button, true);
-        tr.className = "";
+    var id = checkbox.dataset.id;
+
+    var promise = new Promise(function(resolve, reject) {
+      chrome.storage.local.get({"routes": null}, function(items) {
+        var route = null;
+        if (items.routes) {
+          for (var k in items.routes) {
+            var entry = items.routes[k];
+            if (entry.id === id) {
+              route = entry;
+              break;
+            }
+          }
+        }
+        if (!route) {
+          reject("No route information for route id '" + id + "'");
+        } else {
+          resolve(route);
+        }
       });
+    });
+    promise.then(function(route) {
+        return Mailgun.update_route(route, !checked);
+    }).then(function() {
+      checkbox.checked = !checked;
+      Utils.push_status_message("Route updated!", true);
+      Mailgun.synchronize_data();
+    }).catch(function(message) {
+      checkbox.checked = checked;
+      console.log(message);
+      Utils.push_status_message("Failed to update route!", false);
+    }).then(function() {
+      Utils.set_element_sensitive_ex(checkbox, true);
+      Utils.set_element_sensitive_ex(button, true);
+      tr.className = "";
+    });
   };
 
   return tr;
