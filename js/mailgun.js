@@ -123,10 +123,10 @@ const Mailgun = (function() {
 
   function prepare_route_api_data(alias, forward, active, domain) {
     var description = construct_metadata(alias, forward, active);
-    var expression = "match_recipient('" + alias + "@" + domain + "')";
+    var expression = "match_recipient(\"" + alias + "@" + domain + "\")";
     var action = ["stop()"];
     if (active) {
-      action.unshift("forward('" + forward + "')");
+      action.unshift("forward(\"" + forward + "\")");
     }
     return {
       "description": description,
