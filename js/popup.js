@@ -1,12 +1,7 @@
 function initialize_ui() {
   chrome.storage.sync.get({
-    "domain": "",
     "forwards": []
   }, function(items) {
-    if (items.domain) {
-      var domain_label = document.getElementById("domain");
-      domain_label.innerHTML = "@" + items.domain;
-    }
     var select = document.getElementById("forwards");
     items.forwards.forEach(function(item) {
       Utils.append_list_element(select, item);
