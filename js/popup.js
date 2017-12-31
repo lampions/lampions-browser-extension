@@ -170,6 +170,12 @@ function populate_routes_table(routes) {
   document.addEventListener("DOMContentLoaded", function() {
     initialize_ui();
   });
+  document.getElementById("alias").addEventListener("keypress", function() {
+    // Check for enter key.
+    if (event.keyCode === 13) {
+      add_route();
+    }
+  });
   document.getElementById("add").addEventListener("click", add_route);
   document.getElementById("settings").addEventListener("click", function() {
     chrome.runtime.openOptionsPage();
