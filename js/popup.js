@@ -170,13 +170,25 @@ function populate_routes_table(routes) {
   document.addEventListener("DOMContentLoaded", function() {
     initialize_ui();
   });
-  document.getElementById("alias").addEventListener("keypress", function() {
+
+  var submit = document.getElementById("add");
+  submit.addEventListener("click", add_route);
+  Utils.set_element_sensitive_ex(submit, false);
+
+  var input = document.getElementById("alias");
+  input.addEventListener("input", function() {
+    var alias = Utils.strip_string(input.value);
+    // Define dummy address to validate the input.
+    var email = alias + "@domain.tld";
+    Utils.set_element_sensitive_ex(submit, Utils.validate_email(email));
+  });
+  input.addEventListener("keypress", function() {
     // Check for enter key.
     if (event.keyCode === 13) {
       add_route();
     }
   });
-  document.getElementById("add").addEventListener("click", add_route);
+
   document.getElementById("settings").addEventListener("click", function() {
     chrome.runtime.openOptionsPage();
   });

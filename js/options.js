@@ -81,16 +81,17 @@ function remove_forward_address() {
   submit.addEventListener("click", add_forward_address);
 
   var input = document.getElementById("forwards-input");
+  input.addEventListener("input", function() {
+    var email = Utils.strip_string(input.value);
+    Utils.set_element_sensitive_ex(submit, Utils.validate_email(email));
+  });
   input.addEventListener("keypress", function() {
     // Check for enter key.
     if (event.keyCode === 13) {
       add_forward_address();
     }
   });
-  input.addEventListener("input", function() {
-    var email = Utils.strip_string(input.value);
-    Utils.set_element_sensitive_ex(submit, Utils.validate_email(email));
-  });
+
   document.getElementById("remove-submit").addEventListener(
     "click", remove_forward_address);
   document.getElementById("save").addEventListener("click", save_options);
