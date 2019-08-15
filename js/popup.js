@@ -68,6 +68,12 @@ function add_route() {
 
 function _create_table_row(route) {
   var tr = document.createElement("tr");
+
+  // TODO:
+  //   1. Replace the alias label by the full mail address.
+  //   2. Replace the forward label by a dropdown box.
+  //   3. Add a button to copy email address to clipboard.
+
   ["alias", "forward"].forEach(function(key) {
     var td = document.createElement("td");
     td.innerHTML = route[key];
