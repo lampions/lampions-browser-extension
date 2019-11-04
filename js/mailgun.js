@@ -41,6 +41,7 @@ const Mailgun = (function() {
           }
           if (xhr.status === 200) {
             resolve(response);
+            return;
           } else {
             reject(response.error);
             return;
@@ -77,6 +78,7 @@ const Mailgun = (function() {
         if (items !== undefined && items.domain && items.api_key) {
           var api = new API(items.domain, items.api_key);
           resolve(api);
+          return;
         } else {
           reject("Failed to obtain domain and API key from sync storage");
           return;
@@ -123,7 +125,7 @@ const Mailgun = (function() {
     });
   }
 
-  function prepare_route_api_data(alias, forward, active, domain) {
+  function _prepare_route_api_data(alias, forward, active, domain) {
     var description = JSON.stringify({
       "alias": alias,
       "forward": forward
@@ -142,7 +144,7 @@ const Mailgun = (function() {
 
   function update_route(route, active) {
     return _prepare_api_call().then(function(api) {
-      var data = prepare_route_api_data(
+      var data = _prepare_route_api_data(
         route.description.alias, route.description.forward, active,
         api.domain);
       return api.put("/routes/" + route.id, data).then(function(response) {
@@ -158,7 +160,7 @@ const Mailgun = (function() {
 
   function add_route(alias, forward) {
     return _prepare_api_call().then(function(api) {
-      var data = prepare_route_api_data(alias, forward, true, api.domain);
+      var data = _prepare_route_api_data(alias, forward, true, api.domain);
       return api.post("/routes", data).then(function(response) {
         var route = response.route;
         var route_description = _parse_route_description(route.description);

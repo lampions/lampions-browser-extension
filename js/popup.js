@@ -150,6 +150,7 @@ function _create_table_row(route) {
           return;
         } else {
           resolve(route);
+          return;
         }
       });
     });
