@@ -8,6 +8,11 @@
     "alarms",
     "https://api.mailgun.net/v3"
   ],
+  "browser_specific_settings": {
+    "gecko": {
+      "id": "{1f3d8c18-dc3c-442f-94ca-671b77c12be7}"
+    }
+  },
   "icons": {
     "16": "img/icon16.png",
     "32": "img/icon32.png",
