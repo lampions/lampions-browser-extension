@@ -31,15 +31,24 @@ const Mailgun = (function() {
       xhr.open(method, url, true, "api", this._api_key);
       return new Promise(function(resolve, reject) {
         xhr.onload = function() {
-          var response = JSON.parse(xhr.responseText);
+          var response;
+          try {
+            response = JSON.parse(xhr.responseText);
+          } catch (exc) {
+            reject("Server responded with status code: " +
+                   xhr.status.toString());
+            return;
+          }
           if (xhr.status === 200) {
             resolve(response);
           } else {
             reject(response.error);
+            return;
           }
         };
         xhr.onerror = function() {
           reject("AJAX call failed");
+          return;
         };
         xhr.send(this._marshal_data(data));
       }.bind(this));
@@ -62,20 +71,21 @@ const Mailgun = (function() {
     }
   }
 
-  function prepare_api_call() {
+  function _prepare_api_call() {
     return new Promise(function(resolve, reject) {
       chrome.storage.sync.get({"domain": "", "api_key": ""}, function(items) {
-        if (items.domain && items.api_key) {
+        if (items !== undefined && items.domain && items.api_key) {
           var api = new API(items.domain, items.api_key);
           resolve(api);
         } else {
           reject("Failed to obtain domain and API key from sync storage");
+          return;
         }
       });
     });
   }
 
-  function parse_metadata(data) {
+  function _parse_route_description(data) {
     // Routes defined through this extension store metadata as json-encoded
     // description fields on mailgun. This way we can implement the "drop"
     // behavior of routes where we remove the "forward" action of a route while
@@ -86,7 +96,7 @@ const Mailgun = (function() {
       return null;
     }
 
-    var attributes = ["alias", "forward", "active"];
+    var attributes = ["alias", "forward"];
     for (var key in attributes) {
       var attribute = attributes[key];
       if (route_description[attribute] === undefined) {
@@ -96,24 +106,16 @@ const Mailgun = (function() {
     return route_description;
   }
 
-  function construct_metadata(alias, forward, active) {
-    return JSON.stringify({
-      "alias": alias,
-      "forward": forward,
-      "active": active
-    });
-  }
-
   function fetch_routes() {
-    return prepare_api_call().then(function(api) {
+    return _prepare_api_call().then(function(api) {
       return api.get("/routes", {"limit": 0}).then(function(response) {
         var routes = [];
         for (var i = 0; i < response.total_count; ++i) {
           var route = response.items[i];
-          var route_description = parse_metadata(route.description);
+          var route_description = _parse_route_description(route.description);
           if (route_description) {
-            route_description.id = route.id;
-            routes.push(route_description);
+            route.description = route_description;
+            routes.push(route);
           }
         }
         return routes;
@@ -122,7 +124,10 @@ const Mailgun = (function() {
   }
 
   function prepare_route_api_data(alias, forward, active, domain) {
-    var description = construct_metadata(alias, forward, active);
+    var description = JSON.stringify({
+      "alias": alias,
+      "forward": forward
+    });
     var expression = "match_recipient(\"" + alias + "@" + domain + "\")";
     var action = ["stop()"];
     if (active) {
@@ -136,30 +141,37 @@ const Mailgun = (function() {
   }
 
   function update_route(route, active) {
-    return prepare_api_call().then(function(api) {
+    return _prepare_api_call().then(function(api) {
       var data = prepare_route_api_data(
-        route.alias, route.forward, active, api.domain);
+        route.description.alias, route.description.forward, active,
+        api.domain);
       return api.put("/routes/" + route.id, data).then(function(response) {
-        var updated_route = parse_metadata(response.description);
-        updated_route.id = route.id;
+        var updated_route = response.route;
+        var route_description = _parse_route_description(route.description);
+        if (route_description) {
+          updated_route.description = route_description;
+        }
         return updated_route;
       });
     });
   }
 
   function add_route(alias, forward) {
-    return prepare_api_call().then(function(api) {
+    return _prepare_api_call().then(function(api) {
       var data = prepare_route_api_data(alias, forward, true, api.domain);
       return api.post("/routes", data).then(function(response) {
-        var route = parse_metadata(response.route.description);
-        route.id = response.route.id;
+        var route = response.route;
+        var route_description = _parse_route_description(route.description);
+        if (route_description) {
+          route.description = route_description;
+        }
         return route;
       });
     });
   }
 
   function remove_route(id) {
-    return prepare_api_call().then(function(api) {
+    return _prepare_api_call().then(function(api) {
       return api.delete("/routes/" + id);
     });
   }

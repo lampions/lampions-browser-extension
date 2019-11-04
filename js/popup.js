@@ -2,6 +2,9 @@ function initialize_ui() {
   chrome.storage.sync.get({
     "forwards": []
   }, function(items) {
+    if (items === undefined) {
+      return;
+    }
     var select = document.getElementById("forwards");
     items.forwards.forEach(function(item) {
       Utils.append_list_element(select, item);
@@ -34,7 +37,7 @@ function add_route() {
     var routes = items.routes;
     for (var i in routes) {
       var route = routes[i];
-      if (route.alias === alias) {
+      if (route.description.alias === alias) {
         Utils.push_status_message("Route already defined!", false);
         return;
       }
@@ -66,6 +69,14 @@ function add_route() {
   });
 }
 
+function _is_route_active(route) {
+  var actions = route.actions;
+  if (actions.length > 0 && actions[0] === "stop()") {
+    return false;
+  }
+  return true;
+}
+
 function _create_table_row(route) {
   var tr = document.createElement("tr");
 
@@ -76,7 +87,7 @@ function _create_table_row(route) {
 
   ["alias", "forward"].forEach(function(key) {
     var td = document.createElement("td");
-    td.innerHTML = route[key];
+    td.textContent = route.description[key];
     tr.appendChild(td);
   });
 
@@ -85,7 +96,7 @@ function _create_table_row(route) {
   var checkbox = document.createElement("input");
   checkbox.type = "checkbox";
   checkbox.dataset.id = route.id;
-  if (route.active) {
+  if (_is_route_active(route)) {
     checkbox.checked = true;
   }
   td.appendChild(checkbox);
@@ -136,6 +147,7 @@ function _create_table_row(route) {
         }
         if (!route) {
           reject("No route information for route id '" + id + "'");
+          return;
         } else {
           resolve(route);
         }
@@ -149,7 +161,6 @@ function _create_table_row(route) {
       Mailgun.synchronize_data();
     }).catch(function(message) {
       checkbox.checked = checked;
-      console.log(message);
       Utils.push_status_message("Failed to update route!", false);
     }).then(function() {
       Utils.set_element_sensitive_ex(checkbox, true);

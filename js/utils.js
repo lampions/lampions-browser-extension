@@ -6,7 +6,7 @@ const Utils = (function() {
   function prepend_list_element(select, item) {
     var option = document.createElement("option");
     option.value = item;
-    option.innerHTML = item;
+    option.textContent = item;
     option.setAttribute("selected", true);
     select.insertBefore(option, select.firstChild);
   }
@@ -14,7 +14,7 @@ const Utils = (function() {
   function append_list_element(select, item) {
     var option = document.createElement("option");
     option.value = item;
-    option.innerHTML = item;
+    option.textContent = item;
     select.appendChild(option);
     select.removeAttribute("disabled");
   }
@@ -40,7 +40,7 @@ const Utils = (function() {
     var status = document.getElementById("status");
     // Show the status label but also schedule adding the fade-out class to the
     // element to hide the label again.
-    status.innerHTML = message;
+    status.textContent = message;
     if (success) {
       status.className = "success";
     } else {

@@ -38,6 +38,9 @@ function restore_options() {
     "domain": "",
     "api_key": ""
   }, function(items) {
+    if (items === undefined) {
+      return;
+    }
     var select = document.getElementById("forwards");
     select.setAttribute("disabled", true);
     items.forwards.forEach(function(item) {
