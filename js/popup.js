@@ -209,5 +209,6 @@ function populate_routes_table(routes) {
 
   document.getElementById("settings").addEventListener("click", function() {
     chrome.runtime.openOptionsPage();
+    window.close();
   });
 })();
