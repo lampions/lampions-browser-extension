@@ -7,22 +7,15 @@
     <link rel="stylesheet" type="text/css" href="css/shared.css">
   </head>
   <body>
-    <div id="controls">
+    <div>
       <div class="controls">
-        <div class="no-overflow">
-          <input id="alias" type="text" placeholder="Alias"></input>
-        </div>
-      </div>
-      <div class="controls">
-        <button id="add" type="submit">Add</button>
-        <div class="no-overflow">
-          <select id="forwards"></select>
-        </div>
+        <input id="alias" type="text" placeholder="Alias"></input>
+        <button id="add" type="submit" class="icon-add"></button>
       </div>
     </div>
 
     <div class="controls">
-      <button id="settings" type="submit">Settings</button>
+      <button id="settings" type="submit" class="icon-settings"></button>
       <span id="status"></span>
     </div>
 
@@ -30,9 +23,10 @@
       <table>
         <thead>
           <tr>
-            <th>Alias</th>
             <th>Address</th>
             <th>Forward</th>
+            <th>Active</th>
+            <th></th>
             <th></th>
           </tr>
           <tbody id="routes-table">

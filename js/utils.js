@@ -36,21 +36,59 @@ const Utils = (function() {
     set_element_sensitive_ex(element, status);
   }
 
-  function push_status_message(message, success) {
-    var status = document.getElementById("status");
-    // Show the status label but also schedule adding the fade-out class to the
-    // element to hide the label again.
-    status.textContent = message;
-    if (success) {
-      status.className = "success";
-    } else {
-      status.className = "failure";
+  function left_click_handler(callback) {
+    function _handler(event) {
+      if (event.which !== 1) {
+        return;
+      }
+      return callback(event);
     }
-    status.style.opacity = 1;
-    setTimeout(function(status) {
-      status.className += " fade-out";
-      status.style.opacity = 0;
-    }, 1000, status);
+    return _handler;
+  }
+
+  function storage_local_get(data) {
+    return new Promise(function(resolve, reject) {
+      chrome.storage.local.get(data, function(items) {
+        resolve(items);
+        return;
+      });
+    });
+  }
+
+  function storage_sync_get(data) {
+    return new Promise(function(resolve, reject) {
+      chrome.storage.sync.get(data, function(items) {
+        resolve(items);
+        return;
+      });
+    });
+  }
+
+  function get_route_by_id(id) {
+    return new Promise(function(resolve, reject) {
+      storage_local_get({"routes": []}).then(function(items) {
+        if (items === undefined) {
+          reject("Failed to retrieve routes!");
+          return;
+        }
+        var route = null;
+        var routes = items.routes;
+        for (var i = 0; i < routes.length; ++i) {
+          var _route = routes[i];
+          if (_route.id === id) {
+            route = _route;
+            break;
+          }
+        }
+        if (!route) {
+          reject("No route information for route id '" + id + "'");
+          return;
+        } else {
+          resolve(route);
+          return;
+        }
+      });
+    });
   }
 
   return Object.freeze({
@@ -60,6 +98,9 @@ const Utils = (function() {
     validate_email: validate_email,
     set_element_sensitive_ex: set_element_sensitive_ex,
     set_element_sensitive: set_element_sensitive,
-    push_status_message: push_status_message
+    left_click_handler: left_click_handler,
+    storage_local_get: storage_local_get,
+    storage_sync_get: storage_sync_get,
+    get_route_by_id: get_route_by_id
   });
 })();

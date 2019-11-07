@@ -99,8 +99,8 @@ const Mailgun = (function() {
     }
 
     var attributes = ["alias", "forward"];
-    for (var key in attributes) {
-      var attribute = attributes[key];
+    for (var i = 0; i < attributes.length; ++i) {
+      var attribute = attributes[i];
       if (route_description[attribute] === undefined) {
         return null;
       }
@@ -142,18 +142,38 @@ const Mailgun = (function() {
     };
   }
 
-  function update_route(route, active) {
+  function is_route_active(route) {
+    // TODO: This could do with some error checking.
+    var actions = route.actions;
+    if (actions.length > 0 && actions[0] === "stop()") {
+      return false;
+    }
+    return true;
+  }
+
+  function _get_with_default(object, key, fallback) {
+    var value = object[key];
+    if (value === undefined) {
+      return fallback;
+    }
+    return value;
+  }
+
+  function update_route(route, options) {
     return _prepare_api_call().then(function(api) {
-      var data = _prepare_route_api_data(
-        route.description.alias, route.description.forward, active,
-        api.domain);
-      return api.put("/routes/" + route.id, data).then(function(response) {
-        var updated_route = response.route;
-        var route_description = _parse_route_description(route.description);
+      var new_forward = _get_with_default(options, "forward",
+                                          route.description.forward);
+      var new_active = _get_with_default(options, "active",
+                                         is_route_active(route));
+      var data = _prepare_route_api_data(route.description.alias, new_forward,
+                                         new_active, api.domain);
+      return api.put("/routes/" + route.id, data).then(function(new_route) {
+        var route_description = _parse_route_description(
+          new_route.description);
         if (route_description) {
-          updated_route.description = route_description;
+          new_route.description = route_description;
         }
-        return updated_route;
+        return new_route;
       });
     });
   }
@@ -172,9 +192,9 @@ const Mailgun = (function() {
     });
   }
 
-  function remove_route(id) {
+  function remove_route(route) {
     return _prepare_api_call().then(function(api) {
-      return api.delete("/routes/" + id);
+      return api.delete("/routes/" + route.id);
     });
   }
 
@@ -189,6 +209,7 @@ const Mailgun = (function() {
     add_route: add_route,
     update_route: update_route,
     remove_route: remove_route,
-    synchronize_data: synchronize_data
+    synchronize_data: synchronize_data,
+    is_route_active: is_route_active
   });
 })();

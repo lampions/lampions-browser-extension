@@ -1,4 +1,5 @@
 body {
+  font-size: small;
   white-space: nowrap;
 }
 
@@ -8,14 +9,18 @@ body {
   margin-left: 0.5em;
 }
 
+#status {
+  line-height: 1em;
+}
+
 .controls {
-  display: table;
+  display: flex;
   margin: 0.75em auto;
   width: 100%;
 }
 
 .controls input {
-  display: table-cell;
+  flex-grow: 1;
 }
 
 #alias,
@@ -28,8 +33,26 @@ body {
 }
 
 button {
+  background: transparent;
+  border: none;
   margin: 0;
   padding: 0;
+}
+
+button:hover {
+  color: #444;
+}
+
+button:active {
+  color: #000;
+}
+
+button:focus {
+  outline: none;
+}
+
+button::-moz-focus-inner {
+  border: 0;
 }
 
 table {
@@ -40,9 +63,13 @@ table {
 
 table th,
 table td {
-  padding: 0.5em 0.75em;
+  padding: 0.25em 0.5em;
   min-width: 1.25em;
   text-align: center;
+}
+
+select {
+  margin: 0.5em;
 }
 
 table thead {
@@ -51,6 +78,7 @@ table thead {
 
 table tbody tr {
   border-style: solid;
+  border-color: lightgray;
   border-width: 1px 0 0 0;
 }
 
@@ -58,6 +86,7 @@ table tbody tr:nth-child(even) {
   background-color: rgba(0, 0, 50, 0.025);
 }
 
+.copy-button,
 .remove-button {
   min-width: 0 !important;
 }
@@ -71,3 +100,9 @@ input[type="checkbox"]:disabled,
 button:disabled {
   opacity: 1;
 }
+
+/* TODO */
+
+/* #routes { */
+/*   overflow: auto; */
+/* } */
