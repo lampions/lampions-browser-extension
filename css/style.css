@@ -68,7 +68,7 @@ table td {
   text-align: center;
 }
 
-select {
+table select {
   margin: 0.5em;
 }
 
@@ -86,9 +86,16 @@ table tbody tr:nth-child(even) {
   background-color: rgba(0, 0, 50, 0.025);
 }
 
-.copy-button,
-.remove-button {
-  min-width: 0 !important;
+.button {
+  color: rgb(68, 68, 68);
+}
+
+.button:hover {
+  color: rgb(68, 159, 219);
+}
+
+.button:active {
+  color: rgb(47, 110, 152);
 }
 
 .insensitive {
