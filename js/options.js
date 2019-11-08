@@ -19,16 +19,11 @@ function save_options() {
     "domain": domain,
     "api_key": api_key
   }, function() {
-    var message = null;
-    var success = null;
     if (chrome.runtime.lastError) {
-      message = "Failed to save options!";
-      success = false;
+      Utils.push_failure_message("Failed to save options!");
     } else {
-      message = "Options saved!";
-      success = true;
+      Utils.push_success_message("Options saved!");
     }
-    Utils.push_status_message(message, success);
   });
 }
 
@@ -65,6 +60,7 @@ function add_forward_address() {
     Utils.set_element_sensitive_ex(select, true);
     Utils.set_element_sensitive("remove-submit", true);
     input.value = "";
+    save_options();
   }
 }
 
@@ -75,6 +71,7 @@ function remove_forward_address() {
     Utils.set_element_sensitive_ex(select, false);
     Utils.set_element_sensitive("remove-submit", false);
   }
+  save_options();
 }
 
 (function() {

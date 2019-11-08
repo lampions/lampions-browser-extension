@@ -23,6 +23,31 @@ const Utils = (function() {
     return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email);
   }
 
+  function _push_status_message(message, success) {
+    var status = document.getElementById("status");
+    // Show the status label but also schedule adding the fade-out class to the
+    // element to hide the label again.
+    status.textContent = message;
+    if (success) {
+      status.className = "success";
+    } else {
+      status.className = "failure";
+    }
+    status.style.opacity = 1;
+    setTimeout(function(status) {
+      status.className += " fade-out";
+      status.style.opacity = 0;
+    }, 1000, status);
+  }
+
+  function push_success_message(message) {
+    _push_status_message(message, true);
+  }
+
+  function push_failure_message(message) {
+    _push_status_message(message, false);
+  }
+
   function set_element_sensitive_ex(element, status) {
     if (status) {
       element.removeAttribute("disabled");
@@ -96,6 +121,8 @@ const Utils = (function() {
     prepend_list_element: prepend_list_element,
     append_list_element: append_list_element,
     validate_email: validate_email,
+    push_success_message: push_success_message,
+    push_failure_message: push_failure_message,
     set_element_sensitive_ex: set_element_sensitive_ex,
     set_element_sensitive: set_element_sensitive,
     left_click_handler: left_click_handler,

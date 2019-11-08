@@ -1,32 +1,3 @@
-// Utility functions
-
-function _push_status_message(message, success) {
-  var status = document.getElementById("status");
-  // Show the status label but also schedule adding the fade-out class to the
-  // element to hide the label again.
-  status.textContent = message;
-  if (success) {
-    status.className = "success";
-  } else {
-    status.className = "failure";
-  }
-  status.style.opacity = 1;
-  setTimeout(function(status) {
-    status.className += " fade-out";
-    status.style.opacity = 0;
-  }, 1000, status);
-}
-
-function push_success_message(message) {
-  _push_status_message(message, true);
-}
-
-function push_failure_message(message) {
-  _push_status_message(message, false);
-}
-
-// Core functions
-
 function initialize_ui() {
   Utils.storage_local_get({"routes": ""}).then(function(items) {
     if (items !== undefined && items.routes) {
@@ -39,7 +10,7 @@ function add_route() {
   var input = document.getElementById("alias");
   var alias = Utils.strip_string(input.value);
   if (!alias) {
-    push_failure_message("No alias given");
+    Utils.push_failure_message("No alias given");
     return;
   }
 
@@ -49,7 +20,7 @@ function add_route() {
   Promise.all([domain_promise, routes_promise]).then(function(values) {
     var [domain_items, routes_items] = values;
     if (domain_items === undefined || !domain_items.domain) {
-      push_failure_message("No domain defined yet");
+      Utils.push_failure_message("No domain defined yet");
       return;
     }
     var domain = domain_items.domain;
@@ -59,7 +30,7 @@ function add_route() {
     for (var i = 0; i < routes.length; ++i) {
       var route = routes[i];
       if (route.description.alias === alias) {
-        push_failure_message("Route already defined");
+        Utils.push_failure_message("Route already defined");
         return;
       }
     }
@@ -78,12 +49,12 @@ function add_route() {
         table.insertBefore(tr, table.firstChild);
 
         input.value = "";
-        push_success_message("Route added");
+        Utils.push_success_message("Route added");
         Mailgun.synchronize_data();
       });
     })
     .catch(function() {
-      push_failure_message("Failed to add route");
+      Utils.push_failure_message("Failed to add route");
     })
     .then(function() {
       elements.forEach(function(element) {
@@ -163,12 +134,12 @@ function _create_table_row(route, domain, forwards) {
       return Mailgun.update_route(route, {"active": !checked});
     }).then(function(route) {
       checkbox.checked = Mailgun.is_route_active(route);
-      push_success_message("Route updated");
+      Utils.push_success_message("Route updated");
       Mailgun.synchronize_data();
     }).catch(function(msg) {
       // Restore the original checkbox state.
       checkbox.checked = checked;
-      push_failure_message("Failed to update route");
+      Utils.push_failure_message("Failed to update route");
       console.log(msg);
     }).then(function() {
       _activate_ui_elements(tr, elements);
@@ -188,7 +159,7 @@ function _create_table_row(route, domain, forwards) {
     Utils.get_route_by_id(route_id).then(function(route) {
       return Mailgun.update_route(route, {"forward": new_forward});
     }).then(function(route) {
-      push_success_message("Route updated");
+      Utils.push_success_message("Route updated");
       Mailgun.synchronize_data();
     }).catch(function(message) {
       console.log(message);
@@ -196,7 +167,7 @@ function _create_table_row(route, domain, forwards) {
       Mailgun.get_route_by_id(route_id).then(function(route) {
         select.selectedIndex = forwards.indexOf(route.description.forward);
       });
-      push_failure_message("Failed to update route");
+      Utils.push_failure_message("Failed to update route");
     }).then(function() {
       _activate_ui_elements(tr, elements);
     });
@@ -205,9 +176,9 @@ function _create_table_row(route, domain, forwards) {
   // Connect signal handler for copying an address to the clipboard.
   copy_button.onmousedown = Utils.left_click_handler(function() {
     navigator.clipboard.writeText(alias_address).then(function() {
-      push_success_message("Address copied to clipboard");
+      Utils.push_success_message("Address copied to clipboard");
     }).catch(function() {
-      push_failure_message("Failed to copy address to clipboard");
+      Utils.push_failure_message("Failed to copy address to clipboard");
     });
   });
 
@@ -219,10 +190,10 @@ function _create_table_row(route, domain, forwards) {
     }).then(function() {
       var table = document.getElementById("routes-table");
       table.removeChild(tr);
-      push_success_message("Route removed");
+      Utils.push_success_message("Route removed");
       Mailgun.synchronize_data();
     }).catch(function() {
-      push_failure_message("Failed to remove route");
+      Utils.push_failure_message("Failed to remove route");
     }).then(function() {
       _activate_ui_elements(tr, elements);
     });
