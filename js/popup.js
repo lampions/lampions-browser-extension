@@ -80,13 +80,17 @@ function _activate_ui_elements(tr, elements) {
 
 function _create_table_row(route, domain, forwards) {
   var route_id = route.id;
+  var route_is_active = Mailgun.is_route_active(route);
 
   var tr = document.createElement("tr");
 
   // Create alias address label.
   var alias_address = route.description["alias"] + "@" + domain;
+  var alias_label = document.createElement("span");
+  alias_label.textContent = alias_address;
+  alias_label.className = route_is_active ? "" : "insensitive";
   var td = document.createElement("td");
-  td.textContent = alias_address;
+  td.appendChild(alias_label);
   tr.appendChild(td);
 
   // Create a dropdown list of forwarding addresses.
@@ -103,7 +107,7 @@ function _create_table_row(route, domain, forwards) {
   // Create a state checkbox to control the route activity.
   var checkbox = document.createElement("input");
   checkbox.type = "checkbox";
-  if (Mailgun.is_route_active(route)) {
+  if (route_is_active) {
     checkbox.checked = true;
   }
   var td = document.createElement("td");
@@ -133,7 +137,9 @@ function _create_table_row(route, domain, forwards) {
     Utils.get_route_by_id(route_id).then(function(route) {
       return Mailgun.update_route(route, {"active": !checked});
     }).then(function(route) {
-      checkbox.checked = Mailgun.is_route_active(route);
+      var route_is_active = Mailgun.is_route_active(route);
+      checkbox.checked = route_is_active;
+      alias_label.className = route_is_active ? "" : "insensitive";
       Utils.push_success_message("Route updated");
       Mailgun.synchronize_data();
     }).catch(function(msg) {
