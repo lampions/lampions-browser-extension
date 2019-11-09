@@ -208,9 +208,6 @@ function _create_table_row(route, domain, forwards) {
   return tr;
 }
 
-// FIXME: This function seems to return forward addresses in nondeterministic
-//        order!
-
 function _determine_available_forwards(routes) {
   var forwards = [];
 

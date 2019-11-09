@@ -32,28 +32,33 @@ body {
   overflow: hidden;
 }
 
-button {
-  background: transparent;
-  border: none;
-  margin: 0;
-  padding: 0;
-}
-
-button:hover {
-  color: #444;
-}
-
-button:active {
-  color: #000;
-}
-
-button:focus {
-  outline: none;
-}
-
 button::-moz-focus-inner {
   border: 0;
 }
+
+button.button {
+  margin: 0;
+  padding: 0.1em 0.25em;
+}
+
+/* table button.button { */
+/*   background: transparent; */
+/*   border: none; */
+/*   margin: 0; */
+/*   padding: 0; */
+/* } */
+/*  */
+/* .button { */
+/*   color: rgb(68, 68, 68); */
+/* } */
+/*  */
+/* .button:hover { */
+/*   color: rgb(68, 159, 219); */
+/* } */
+/*  */
+/* .button:active { */
+/*   color: rgb(47, 110, 152); */
+/* } */
 
 table {
   border: 1px solid lightgray;
@@ -86,18 +91,6 @@ table tbody tr:nth-child(even) {
   background-color: rgba(0, 0, 50, 0.025);
 }
 
-.button {
-  color: rgb(68, 68, 68);
-}
-
-.button:hover {
-  color: rgb(68, 159, 219);
-}
-
-.button:active {
-  color: rgb(47, 110, 152);
-}
-
 .insensitive {
   opacity: 0.25;
 }
@@ -108,7 +101,8 @@ button:disabled {
   opacity: 1;
 }
 
-/* TODO */
+/* TODO: Make routes table scroll in its own viewport so the control elements
+ *       on top are always visible. */
 
 /* #routes { */
 /*   overflow: auto; */
