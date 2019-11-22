@@ -23,6 +23,7 @@ function save_options() {
       Utils.push_failure_message("Failed to save options!");
     } else {
       Utils.push_success_message("Options saved!");
+      Mailgun.synchronize_data();
     }
   });
 }
