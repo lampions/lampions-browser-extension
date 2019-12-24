@@ -10,13 +10,16 @@ body {
 }
 
 #status {
+  display: table-cell;
   line-height: 1em;
+  margin: auto 0;
+  padding: 0;
+  vertical-align: middle;
 }
 
 .controls {
   display: flex;
-  margin: 0.75em auto;
-  width: 100%;
+  margin: 0.75em 0;
 }
 
 .controls input {
@@ -37,6 +40,7 @@ button::-moz-focus-inner {
 }
 
 button.button {
+  line-height: 1em;
   margin: 0;
   padding: 0.1em 0.25em;
 }
