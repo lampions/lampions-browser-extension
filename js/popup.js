@@ -88,7 +88,9 @@ function _create_table_row(route, domain, forwards) {
   var alias_address = route.description["alias"] + "@" + domain;
   var alias_label = document.createElement("span");
   alias_label.textContent = alias_address;
-  alias_label.className = route_is_active ? "" : "insensitive";
+  if (!route_is_active) {
+    alias_label.classList.add("insensitive");
+  }
   var td = document.createElement("td");
   td.appendChild(alias_label);
   tr.appendChild(td);
@@ -116,14 +118,14 @@ function _create_table_row(route, domain, forwards) {
 
   // Create a button to copy an alias address to the clipboard.
   var copy_button = document.createElement("button");
-  copy_button.className = "button icon-copy";
+  copy_button.classList.add("button", "icon-copy");
   var td = document.createElement("td");
   td.appendChild(copy_button);
   tr.appendChild(td);
 
   // Append a button to remove a route.
   var delete_button = document.createElement("button");
-  delete_button.className = "button icon-delete";
+  delete_button.classList.add("button", "icon-delete");
   var td = document.createElement("td");
   td.appendChild(delete_button);
   tr.appendChild(td);
@@ -139,7 +141,9 @@ function _create_table_row(route, domain, forwards) {
     }).then(function(route) {
       var route_is_active = Mailgun.is_route_active(route);
       checkbox.checked = route_is_active;
-      alias_label.className = route_is_active ? "" : "insensitive";
+      if (!route_is_active) {
+        alias_label.classList.add("insensitive");
+      }
       Utils.push_success_message("Route updated");
       Mailgun.synchronize_data();
     }).catch(function(msg) {

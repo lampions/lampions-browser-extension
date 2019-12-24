@@ -35,7 +35,7 @@ const Utils = (function() {
     }
     status.style.opacity = 1;
     setTimeout(function(status) {
-      status.className += " fade-out";
+      status.classList.add("fade-out");
       status.style.opacity = 0;
     }, 1000, status);
   }
