@@ -88,7 +88,7 @@ function remove_forward_address() {
   });
   input.addEventListener("keypress", function() {
     // Check for enter key.
-    if (event.keyCode === 13) {
+    if (event.key === "Enter") {
       add_forward_address();
     }
   });

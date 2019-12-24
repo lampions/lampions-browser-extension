@@ -267,7 +267,7 @@ function populate_routes_table(routes) {
   });
   input.addEventListener("keypress", function() {
     // Check for enter key.
-    if (event.keyCode === 13) {
+    if (event.key === "Enter") {
       add_route();
     }
   });
