@@ -1,3 +1,5 @@
+import Mailgun from "./mailgun.js";
+
 function initialize_data() {
   chrome.alarms.create("pollChannelStates", {"periodInMinutes": 1});
   Mailgun.synchronize_data();

@@ -1,3 +1,8 @@
+import "../sass/main.scss";
+
+import Mailgun from "./mailgun.js";
+import Utils from "./utils.js";
+
 function initialize_ui() {
   Utils.storage_local_get({"routes": ""}).then(function(items) {
     if (items !== undefined && items.routes) {

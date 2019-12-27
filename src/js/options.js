@@ -1,3 +1,9 @@
+import "../sass/main.scss";
+import "../sass/options.css";
+
+import Mailgun from "./mailgun.js";
+import Utils from "./utils.js";
+
 function get_forwards() {
   var forwards = [];
   var select = document.getElementById("forwards");

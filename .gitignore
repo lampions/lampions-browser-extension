@@ -65,3 +65,5 @@ typings/
 
 web-ext-artifacts
 .web-extension-id
+
+addon
