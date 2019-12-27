@@ -1,6 +1,6 @@
 BSD 3-Clause License
 
-Copyright (c) 2018, Niklas Koep
+Copyright (c) 2018-2019, Niklas Koep
 All rights reserved.
 
 Redistribution and use in source and binary forms, with or without

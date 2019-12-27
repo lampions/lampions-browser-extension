@@ -7,9 +7,9 @@ module.exports = (env, argv) => {
   const devMode = argv.mode !== "production";
 
   const staticAssets = [
-    "manifest.json", "LICENSE", "img"
-  ].map(folder => {
-    return {from: `./${folder}`, to: `./${folder}`}
+    "manifest.json", "LICENSE.md", "img"
+  ].map(asset => {
+    return {from: `./${asset}`, to: `./${asset}`}
   });
 
   return {
