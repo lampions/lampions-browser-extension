@@ -1,6 +1,7 @@
 # TODO
 
 - Integrate with webpack to use ES6+
+- Rename keys in chrome.storage  to camelCase
 - Replace icomoon by fontawesome
 - Add confirm dialog before deleting routes
 - Add filter functionality

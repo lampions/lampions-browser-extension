@@ -1,105 +1,100 @@
 import "../sass/main.scss";
 import "../sass/options.css";
 
-import Mailgun from "./mailgun.js";
-import Utils from "./utils.js";
+import mailgun from "./mailgun.js";
+import utils from "./utils.js";
 
-function get_forwards() {
-  var forwards = [];
-  var select = document.getElementById("forwards");
-  var options = select.options;
-  for (var i = 0; i < options.length; ++i) {
-    var option = options[i];
-    forwards.push(option.value);
-  }
+function getForwards() {
+  const forwards = [];
+  const select = document.getElementById("forwards");
+  const options = select.options;
+  Array.from(select.options).forEach(option => forwards.push(option.value));
   return forwards;
 }
 
 // Saves options to chrome.storage.sync.
-function save_options() {
-  var forwards = get_forwards();
-  var domain = document.getElementById("domain").value;
-  var api_key = document.getElementById("api-key").value;
-  chrome.storage.sync.set({
+function saveOptions() {
+  const forwards = getForwards();
+  const domain = document.getElementById("domain").value;
+  const api_key = document.getElementById("api-key").value;
+  utils.storageSyncSet({
     "forwards": forwards,
     "domain": domain,
     "api_key": api_key
-  }, function() {
-    if (chrome.runtime.lastError) {
-      Utils.push_failure_message("Failed to save options!");
-    } else {
-      Utils.push_success_message("Options saved!");
-      Mailgun.synchronize_data();
-    }
+  }).then(() => {
+    utils.pushSuccessMessage("Options saved!");
+    mailgun.synchronizeData();
+  }).catch(() => {
+    utils.pushFailureMessage("Failed to save options!");
   });
 }
 
-function restore_options() {
-  chrome.storage.sync.get({
+function restoreOptions() {
+  utils.storageSyncGet({
     "forwards": [],
     "domain": "",
     "api_key": ""
-  }, function(items) {
+  }).then(items => {
     if (items === undefined) {
       return;
     }
-    var select = document.getElementById("forwards");
+    const select = document.getElementById("forwards");
     select.setAttribute("disabled", true);
-    items.forwards.forEach(function(item) {
-      Utils.append_list_element(select, item);
-      Utils.set_element_sensitive_ex(select, true);
-    }.bind(select));
+    items.forwards.forEach(item => {
+      utils.appendListElement(select, item);
+      utils.setElementSensitiveEx(select, true);
+    });
     document.getElementById("domain").value = items.domain;
     document.getElementById("api-key").value = items.api_key;
   });
 }
 
-function add_forward_address() {
-  var forwards = get_forwards();
-  var input = document.getElementById("forwards-input");
-  var forward = Utils.strip_string(input.value);
+function addForwardAddress() {
+  const forwards = getForwards();
+  const input = document.getElementById("forwards-input");
+  const forward = utils.stripString(input.value);
   if (forward &&
-      Utils.validate_email(forward) &&
+      utils.validateEmail(forward) &&
       forwards.indexOf(forward) === -1) {
-    var select = document.getElementById("forwards");
-    Utils.prepend_list_element(select, forward);
-    Utils.set_element_sensitive("forwards-submit", false);
-    Utils.set_element_sensitive_ex(select, true);
-    Utils.set_element_sensitive("remove-submit", true);
+    const select = document.getElementById("forwards");
+    utils.prependListElement(select, forward);
+    utils.setElementSensitive("forwards-submit", false);
+    utils.setElementSensitiveEx(select, true);
+    utils.setElementSensitive("remove-submit", true);
     input.value = "";
-    save_options();
+    saveOptions();
   }
 }
 
-function remove_forward_address() {
-  var select = document.getElementById("forwards");
+function removeForwardAddress() {
+  const select = document.getElementById("forwards");
   select.remove(select.selectedIndex);
   if (select.options.length === 0) {
-    Utils.set_element_sensitive_ex(select, false);
-    Utils.set_element_sensitive("remove-submit", false);
+    utils.setElementSensitiveEx(select, false);
+    utils.setElementSensitive("remove-submit", false);
   }
-  save_options();
+  saveOptions();
 }
 
 (function() {
-  document.addEventListener("DOMContentLoaded", restore_options);
+  document.addEventListener("DOMContentLoaded", restoreOptions);
 
-  var submit = document.getElementById("forwards-submit");
-  submit.addEventListener("click", add_forward_address);
+  const submit = document.getElementById("forwards-submit");
+  submit.addEventListener("click", addForwardAddress);
 
-  var input = document.getElementById("forwards-input");
-  input.addEventListener("input", function() {
-    var email = Utils.strip_string(input.value);
-    Utils.set_element_sensitive_ex(submit, Utils.validate_email(email));
+  const input = document.getElementById("forwards-input");
+  input.addEventListener("input", () => {
+    const email = utils.stripString(input.value);
+    utils.setElementSensitiveEx(submit, utils.validateEmail(email));
   });
-  input.addEventListener("keypress", function() {
+  input.addEventListener("keypress", () => {
     // Check for enter key.
     if (event.key === "Enter") {
-      add_forward_address();
+      addForwardAddress();
     }
   });
 
   document.getElementById("remove-submit").addEventListener(
-    "click", remove_forward_address);
-  document.getElementById("save").addEventListener("click", save_options);
+    "click", removeForwardAddress);
+  document.getElementById("save").addEventListener("click", saveOptions);
 })();

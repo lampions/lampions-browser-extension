@@ -1,29 +1,29 @@
-function strip_string(s) {
+function stripString(s) {
   return s.replace(/^\s+|\s+$/g, "");
 }
 
-function prepend_list_element(select, item) {
-  var option = document.createElement("option");
+function prependListElement(select, item) {
+  const option = document.createElement("option");
   option.value = item;
   option.textContent = item;
   option.setAttribute("selected", true);
   select.insertBefore(option, select.firstChild);
 }
 
-function append_list_element(select, item) {
-  var option = document.createElement("option");
+function appendListElement(select, item) {
+  const option = document.createElement("option");
   option.value = item;
   option.textContent = item;
   select.appendChild(option);
   select.removeAttribute("disabled");
 }
 
-function validate_email(email) {
+function validateEmail(email) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/.test(email);
 }
 
-function _push_status_message(message, success) {
-  var status = document.getElementById("status");
+function pushStatusMessage(message, success) {
+  const status = document.getElementById("status");
   // Show the status label but also schedule adding the fade-out class to the
   // element to hide the label again.
   status.textContent = message;
@@ -33,21 +33,21 @@ function _push_status_message(message, success) {
     status.className = "failure";
   }
   status.style.opacity = 1;
-  setTimeout(function(status) {
+  setTimeout(status => {
     status.classList.add("fade-out");
     status.style.opacity = 0;
   }, 1000, status);
 }
 
-function push_success_message(message) {
-  _push_status_message(message, true);
+function pushSuccessMessage(message) {
+  pushStatusMessage(message, true);
 }
 
-function push_failure_message(message) {
-  _push_status_message(message, false);
+function pushFailureMessage(message) {
+  pushStatusMessage(message, false);
 }
 
-function set_element_sensitive_ex(element, status) {
+function setElementSensitiveEx(element, status) {
   if (status) {
     element.removeAttribute("disabled");
   } else {
@@ -55,52 +55,74 @@ function set_element_sensitive_ex(element, status) {
   }
 }
 
-function set_element_sensitive(id, status) {
-  var element = document.getElementById(id);
-  set_element_sensitive_ex(element, status);
+function setElementSensitive(id, status) {
+  const element = document.getElementById(id);
+  setElementSensitiveEx(element, status);
 }
 
-function left_click_handler(callback) {
-  function _handler(event) {
+function leftClickHandler(callback) {
+  return event => {
     if (event.which !== 1) {
       return;
     }
     return callback(event);
-  }
-  return _handler;
+  };
 }
 
-function storage_local_get(data) {
-  return new Promise(function(resolve, reject) {
-    chrome.storage.local.get(data, function(items) {
-      resolve(items);
-      return;
+function storageGet(method, data) {
+  return new Promise((resolve, reject) => {
+    method(data, items => {
+      const error = chrome.runtime.lastError;
+      if (error) {
+        reject(error);
+      } else {
+        resolve(items);
+      }
     });
   });
 }
 
-function storage_sync_get(data) {
-  return new Promise(function(resolve, reject) {
-    chrome.storage.sync.get(data, function(items) {
-      resolve(items);
-      return;
+function storageLocalGet(data) {
+  return storageGet(chrome.storage.local.get, data);
+}
+
+function storageSyncGet(data) {
+  return storageGet(chrome.storage.sync.get, data);
+}
+
+function storageSet(method, data) {
+  return new Promise((resolve, reject) => {
+    method(data, () => {
+      const error = chrome.runtime.lastError;
+      if (error) {
+        reject(error);
+      } else {
+        resolve();
+      }
     });
   });
 }
 
-function get_route_by_id(id) {
-  return new Promise(function(resolve, reject) {
-    storage_local_get({"routes": []}).then(function(items) {
+function storageLocalSet(data) {
+  return storageSet(chrome.storage.local.set, data);
+}
+
+function storageSyncSet(data) {
+  return storageSet(chrome.storage.sync.set, data);
+}
+
+function getRouteById(id) {
+  return new Promise((resolve, reject) => {
+    storageLocalGet({"routes": []}).then(items => {
       if (items === undefined) {
         reject("Failed to retrieve routes!");
         return;
       }
-      var route = null;
-      var routes = items.routes;
-      for (var i = 0; i < routes.length; ++i) {
-        var _route = routes[i];
-        if (_route.id === id) {
-          route = _route;
+      let route = null;
+      const routes = items.routes;
+      for (const route_ of routes) {
+        if (route_.id === id) {
+          route = route_;
           break;
         }
       }
@@ -116,16 +138,18 @@ function get_route_by_id(id) {
 }
 
 export default Object.freeze({
-  strip_string: strip_string,
-  prepend_list_element: prepend_list_element,
-  append_list_element: append_list_element,
-  validate_email: validate_email,
-  push_success_message: push_success_message,
-  push_failure_message: push_failure_message,
-  set_element_sensitive_ex: set_element_sensitive_ex,
-  set_element_sensitive: set_element_sensitive,
-  left_click_handler: left_click_handler,
-  storage_local_get: storage_local_get,
-  storage_sync_get: storage_sync_get,
-  get_route_by_id: get_route_by_id
+  stripString: stripString,
+  prependListElement: prependListElement,
+  appendListElement: appendListElement,
+  validateEmail: validateEmail,
+  pushSuccessMessage: pushSuccessMessage,
+  pushFailureMessage: pushFailureMessage,
+  setElementSensitiveEx: setElementSensitiveEx,
+  setElementSensitive: setElementSensitive,
+  leftClickHandler: leftClickHandler,
+  storageLocalGet: storageLocalGet,
+  storageSyncGet: storageSyncGet,
+  storageLocalSet: storageLocalSet,
+  storageSyncSet: storageSyncSet,
+  getRouteById: getRouteById
 });

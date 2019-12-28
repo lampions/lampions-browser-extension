@@ -1,16 +1,16 @@
-import Mailgun from "./mailgun.js";
-
-function initialize_data() {
-  chrome.alarms.create("pollChannelStates", {"periodInMinutes": 1});
-  Mailgun.synchronize_data();
-}
+import mailgun from "./mailgun.js";
 
 (function() {
-  chrome.runtime.onInstalled.addListener(initialize_data);
-  chrome.runtime.onStartup.addListener(initialize_data);
+  // chrome.runtime.onInstalled.addListener(mailgun.synchronizeData);
+  // chrome.runtime.onStartup.addListener(mailgun.synchronizeData);
+  mailgun.synchronizeData();
+
+  // TODO: Can't we simply do this when the popup is opened?
+  // Poll for route updates every minute.
+  chrome.alarms.create("pollRoutes", {"periodInMinutes": 1});
   chrome.alarms.onAlarm.addListener(function(alarm) {
-    if (alarm.name === "pollChannelStates") {
-      Mailgun.synchronize_data();
+    if (alarm.name === "pollRoutes") {
+      mailgun.synchronizeData();
     }
   });
 })();
