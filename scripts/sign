@@ -1,0 +1,58 @@
+// XXX: This is a workaround to run 'web-ext sign' without specifying 'api-key'
+//      and 'api-secret' on the command-line. Unfortunately, required options
+//      to the 'sign' command cannot be specified via web-ext-config.js files.
+//      We therefore read ~/.web-ext-config.js manually, where we expect the
+//      signing credentials to be found under the 'sign' key, and run 'web-ext'
+//      programmatically.
+
+const fs = require("fs");
+const os = require("os");
+const path = require("path");
+
+const importFresh = require("import-fresh");
+const webExt = require("web-ext").default;
+
+const configFile = path.join(os.homedir(), ".web-ext-config.js");
+if (!fs.existsSync(configFile)) {
+  console.log("No web-ext config file found in home directory");
+  process.exit(1);
+}
+
+let config = null;
+try {
+  config = importFresh(configFile);
+} catch (error) {
+  console.log(
+    `Cannot read config file: ${configFile}\n` +
+    `Error: ${error.message}`
+  );
+  process.exit(1);
+}
+
+let apiKey, apiSecret;
+try {
+  if (config.sign === undefined) {
+    throw new Error("No 'sign' section in config file");
+  }
+  apiKey = config.sign.apiKey;
+  apiSecret = config.sign.apiSecret;
+  if (!apiKey || !apiSecret) {
+    throw new Error("api-key and/or api-secret missing from config file");
+  }
+} catch (error) {
+  console.log(
+    `Cannot read config file: ${configFile}\n` +
+    `Error: ${error.message}`
+  );
+  process.exit(1);
+}
+
+// XXX: Using the webExt module does not check for config files or initialize
+//      defaults. We therefore need to specify sourceDir and artifactsDir
+//      explicitly.
+webExt.cmd.sign({
+  sourceDir: "addon",
+  artifactsDir: "web-ext-artifacts",
+  apiKey: apiKey,
+  apiSecret: apiSecret
+}).catch(() => console.log("This shouldn't have happened!"));
