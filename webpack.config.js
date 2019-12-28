@@ -3,14 +3,20 @@ const { CleanWebpackPlugin } = require("clean-webpack-plugin");
 const CopyWebpackPlugin = require("copy-webpack-plugin");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
 
+function copyStaticAssets(files, folders) {
+  const staticAssets = [];
+  const collectAssets = (assets, toType) => {
+    assets.forEach(asset => {
+      staticAssets.push({from: `./${asset}`, to: `./${asset}`, toType})
+    });
+  }
+  collectAssets(files, "file");
+  collectAssets(folders, "dir");
+  return new CopyWebpackPlugin(staticAssets);
+}
+
 module.exports = (env, argv) => {
   const devMode = argv.mode !== "production";
-
-  const staticAssets = [
-    "manifest.json", "LICENSE.md", "img"
-  ].map(asset => {
-    return {from: `./${asset}`, to: `./${asset}`}
-  });
 
   return {
     mode: "development",
@@ -50,7 +56,10 @@ module.exports = (env, argv) => {
     },
     plugins: [
       new CleanWebpackPlugin(),
-      new CopyWebpackPlugin(staticAssets),
+      copyStaticAssets(
+        ["manifest.json", ".web-extension-id", "LICENSE.md"],
+        ["img"]
+      ),
       new HtmlWebpackPlugin({
         template: "./src/templates/popup.html",
         filename: "popup.html",
