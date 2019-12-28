@@ -17,11 +17,7 @@ function saveOptions() {
   const forwards = getForwards();
   const domain = document.getElementById("domain").value;
   const api_key = document.getElementById("api-key").value;
-  utils.storageSyncSet({
-    "forwards": forwards,
-    "domain": domain,
-    "api_key": api_key
-  }).then(() => {
+  utils.storageSyncSet({forwards, domain, api_key}).then(() => {
     utils.pushSuccessMessage("Options saved!");
     mailgun.synchronizeData();
   }).catch(() => {

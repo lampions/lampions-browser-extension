@@ -122,26 +122,19 @@ function fetchRoutes() {
 }
 
 function prepareRouteApiData(alias, forward, active, domain) {
-  const description = JSON.stringify({
-    "alias": alias,
-    "forward": forward
-  });
+  const description = JSON.stringify({alias, forward});
   const expression = "match_recipient(\"" + alias + "@" + domain + "\")";
   const action = ["stop()"];
   if (active) {
     action.unshift("forward(\"" + forward + "\")");
   }
-  return {
-    "description": description,
-    "expression": expression,
-    "action": action
-  };
+  return {description, expression, action};
 }
 
 function isRouteActive(route) {
   // TODO: This could do with some error checking.
   const actions = route.actions;
-  if (actions.length > 0 && actions[0] === "stop()") {
+  if (actions.length > 0 && utils.stripString(actions[0]) === "stop()") {
     return false;
   }
   return true;
@@ -195,7 +188,7 @@ function removeRoute(route) {
 
 function synchronizeData() {
   return fetchRoutes().then(routes => {
-    utils.storageLocalSet({"routes": routes});
+    utils.storageLocalSet({routes});
   }).catch(() => {});
 }
 
