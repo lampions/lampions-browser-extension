@@ -14,11 +14,6 @@ module.exports = (env, argv) => {
 
   return {
     mode: "development",
-    entry: {
-      background: "./src/js/background.js",
-      popup: "./src/js/popup.js",
-      options: "./src/js/options.js"
-    },
     output: {
       path: path.resolve(__dirname, "addon"),
       filename: "[name].js",
@@ -52,11 +47,6 @@ module.exports = (env, argv) => {
     plugins: [
       new CleanWebpackPlugin(),
       new CopyWebpackPlugin(staticAssets),
-      new HtmlWebpackPlugin({
-        template: "./src/templates/background.html",
-        filename: "background.html",
-        chunks: ["background"]
-      }),
       new HtmlWebpackPlugin({
         template: "./src/templates/popup.html",
         filename: "popup.html",

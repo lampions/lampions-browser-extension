@@ -1,3 +1,5 @@
+import utils from "./utils.js";
+
 const BASE_URL = "https://api.mailgun.net/v3";
 
 class API {
@@ -192,9 +194,9 @@ function removeRoute(route) {
 }
 
 function synchronizeData() {
-  fetchRoutes().then(routes => {
-    chrome.storage.local.set({"routes": routes});
-  }).catch(() => {});
+  return fetchRoutes().then(routes => {
+    utils.storageLocalSet({"routes": routes});
+  });
 }
 
 export default Object.freeze({

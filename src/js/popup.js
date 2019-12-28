@@ -3,14 +3,6 @@ import "../sass/main.scss";
 import mailgun from "./mailgun.js";
 import utils from "./utils.js";
 
-function initializeUi() {
-  utils.storageLocalGet({"routes": ""}).then(items => {
-    if (items !== undefined && items.routes) {
-      populateRoutesTable(items.routes);
-    }
-  });
-}
-
 function addRoute() {
   const input = document.getElementById("alias");
   const alias = utils.stripString(input.value);
@@ -251,9 +243,7 @@ function populateRoutesTable(routes) {
   });
 }
 
-(function() {
-  document.addEventListener("DOMContentLoaded", () => initializeUi());
-
+function initializeUi() {
   const submit = document.getElementById("add");
   submit.addEventListener("click", addRoute);
 
@@ -275,4 +265,14 @@ function populateRoutesTable(routes) {
     chrome.runtime.openOptionsPage();
     window.close();
   });
-})();
+
+  utils.storageLocalGet({"routes": ""}).then(items => {
+    if (items !== undefined && items.routes) {
+      populateRoutesTable(items.routes);
+    }
+  });
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  mailgun.synchronizeData().then(initializeUi);
+});
