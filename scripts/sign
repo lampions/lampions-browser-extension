@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 // XXX: This is a workaround to run 'web-ext sign' without specifying 'api-key'
 //      and 'api-secret' on the command-line. Unfortunately, required options
 //      to the 'sign' command cannot be specified via web-ext-config.js files.
