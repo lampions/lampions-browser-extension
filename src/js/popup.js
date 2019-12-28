@@ -135,7 +135,9 @@ function createTableRow(route, domain, forwards) {
     }).then(route => {
       const routeIsActive = mailgun.isRouteActive(route);
       checkbox.checked = routeIsActive;
-      if (!routeIsActive) {
+      if (routeIsActive) {
+        aliasLabel.classList.remove("insensitive");
+      } else {
         aliasLabel.classList.add("insensitive");
       }
       utils.pushSuccessMessage("Route updated");
