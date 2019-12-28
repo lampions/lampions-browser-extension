@@ -18,7 +18,7 @@ compiles the extension and copies static files to the `addon` directory, and
 In this case, run
 
 ```shell
-npm run dev:build`
+npm run dev:build
 ```
 
 first to build the extension once, followed by
@@ -71,4 +71,4 @@ to sign the extension, after which the signed addon will be placed in the
 `web-ext-artifacts` directory from where it can be installed via `Addons >
 Install Add-ons From File...` in Firefox.
 
-[ext]: https://extensionworkshop.com/documentation/develop/getting-started-with-web-ext/
+[web-ext guide]: https://extensionworkshop.com/documentation/develop/getting-started-with-web-ext/
