@@ -14,6 +14,10 @@ module.exports = (env, argv) => {
 
   return {
     mode: "development",
+    entry: {
+      popup: "./src/js/popup.js",
+      options: "./src/js/options.js"
+    },
     output: {
       path: path.resolve(__dirname, "addon"),
       filename: "[name].js",
