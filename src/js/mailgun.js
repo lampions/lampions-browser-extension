@@ -73,7 +73,7 @@ class API {
 
 function prepareApiCall() {
   return new Promise((resolve, reject) => {
-    chrome.storage.sync.get({"domain": "", "api_key": ""}, items => {
+    utils.storageSyncGet({"domain": "", "api_key": ""}).then(items => {
       if (items !== undefined && items.domain && items.api_key) {
         const api = new API(items.domain, items.api_key);
         resolve(api);

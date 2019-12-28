@@ -12,7 +12,6 @@ function getForwards() {
   return forwards;
 }
 
-// Saves options to chrome.storage.sync.
 function saveOptions() {
   const forwards = getForwards();
   const domain = document.getElementById("domain").value;
