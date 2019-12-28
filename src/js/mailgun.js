@@ -196,7 +196,7 @@ function removeRoute(route) {
 function synchronizeData() {
   return fetchRoutes().then(routes => {
     utils.storageLocalSet({"routes": routes});
-  });
+  }).catch(() => {});
 }
 
 export default Object.freeze({
