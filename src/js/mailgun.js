@@ -199,10 +199,10 @@ function synchronizeData() {
   }).catch(() => {});
 }
 
-export default Object.freeze({
-  addRoute: addRoute,
-  updateRoute: updateRoute,
-  removeRoute: removeRoute,
-  synchronizeData: synchronizeData,
-  isRouteActive: isRouteActive
-});
+export default {
+  addRoute,
+  updateRoute,
+  removeRoute,
+  synchronizeData,
+  isRouteActive
+};

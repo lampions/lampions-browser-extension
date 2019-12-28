@@ -137,19 +137,19 @@ function getRouteById(id) {
   });
 }
 
-export default Object.freeze({
-  stripString: stripString,
-  prependListElement: prependListElement,
-  appendListElement: appendListElement,
-  validateEmail: validateEmail,
-  pushSuccessMessage: pushSuccessMessage,
-  pushFailureMessage: pushFailureMessage,
-  setElementSensitiveEx: setElementSensitiveEx,
-  setElementSensitive: setElementSensitive,
-  leftClickHandler: leftClickHandler,
-  storageLocalGet: storageLocalGet,
-  storageSyncGet: storageSyncGet,
-  storageLocalSet: storageLocalSet,
-  storageSyncSet: storageSyncSet,
-  getRouteById: getRouteById
-});
+export default {
+  stripString,
+  prependListElement,
+  appendListElement,
+  validateEmail,
+  pushSuccessMessage,
+  pushFailureMessage,
+  setElementSensitiveEx,
+  setElementSensitive,
+  leftClickHandler,
+  storageLocalGet,
+  storageSyncGet,
+  storageLocalSet,
+  storageSyncSet,
+  getRouteById
+};
