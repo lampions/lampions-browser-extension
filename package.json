@@ -1,10 +1,10 @@
 {
   "license": "BSD-3-Clause",
   "scripts": {
-    "dev": "npm-run-all -p dev:*",
+    "dev": "webpack && run-p dev:*",
     "dev:build": "webpack --progress --watch",
     "dev:run": "web-ext run --verbose",
-    "build": "npm-run-all -s build:*",
+    "build": "run-s build:*",
     "build:webpack": "webpack --mode=production",
     "build:web-ext": "web-ext build -o",
     "sign": "node scripts/sign"
@@ -14,7 +14,6 @@
     "@babel/preset-env": "^7.7.7",
     "autoprefixer": "^9.7.3",
     "babel-loader": "^8.0.6",
-    "clean-webpack-plugin": "^3.0.0",
     "copy-webpack-plugin": "^5.1.1",
     "css-loader": "^3.4.0",
     "file-loader": "^5.0.2",

@@ -11,21 +11,7 @@ npm run dev
 ```
 
 to compile the extension in development mode and launch it in an empty Firefox
-session. Note that there is a slight race condition between `webpack`, which
-compiles the extension and copies static files to the `addon` directory, and
-`web-ext`, which runs the extension. The latter sometimes fails of the
-`manifest.json` file has has not been copied to the `addon` directory in time.
-In this case, run
-
-```shell
-npm run dev:build
-```
-
-first to build the extension once, followed by
-
-```shell
-npm run dev
-```
+session.
 
 ## Building
 
