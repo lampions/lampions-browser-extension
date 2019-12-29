@@ -4,34 +4,36 @@
     <meta charset="utf-8">
   </head>
   <body>
-    <div>
+    <div id="main">
+      <div id="dialog"></div>
+
       <div class="controls">
         <input id="alias" type="text" placeholder="Alias"></input>
         <button id="add" type="submit" class="button icon-add"></button>
       </div>
-    </div>
 
-    <div class="controls">
-      <button id="settings"
-              type="submit"
-              class="button icon-settings"></button>
-      <span id="status"></span>
-    </div>
+      <div class="controls">
+        <button id="settings"
+                type="submit"
+                class="button icon-settings"></button>
+        <span id="status"></span>
+      </div>
 
-    <div id="routes">
-      <table>
-        <thead>
-          <tr>
-            <th>Address</th>
-            <th>Forward</th>
-            <th>Active</th>
-            <th></th>
-            <th></th>
-          </tr>
-          <tbody id="routes-table">
-          </tbody>
-        </thead>
-      </table>
+      <div id="routes">
+        <table>
+          <thead>
+            <tr>
+              <th>Address</th>
+              <th>Forward</th>
+              <th>Active</th>
+              <th></th>
+              <th></th>
+            </tr>
+            <tbody id="routes-table">
+            </tbody>
+          </thead>
+        </table>
+      </div>
     </div>
   </body>
 </html>

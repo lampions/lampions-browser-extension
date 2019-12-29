@@ -1,4 +1,5 @@
 import "../sass/main.scss";
+import "../sass/dialog.scss";
 
 import mailgun from "./mailgun.js";
 import utils from "./utils.js";
@@ -70,6 +71,46 @@ function activateUiElements(tr, elements) {
   elements.forEach(element => {
     utils.setElementSensitiveEx(element, true);
   });
+}
+
+function showConfirmDialog(question, callback) {
+  const appendElements = (parent, elements) => {
+    elements.forEach(element => parent.appendChild(element));
+  };
+
+  return () => {
+    const dialog = document.getElementById("dialog");
+    dialog.innerHTML = "";
+
+    const onClickHandler = event => {
+      dialog.classList.remove("visible");
+      if (event.target.value === "yes") {
+        callback();
+      }
+    };
+
+    const label = document.createElement("span");
+    label.className = "message";
+    label.textContent = question;
+
+    const yesButton = document.createElement("button");
+    yesButton.textContent = "Yes";
+    yesButton.value = "yes";
+
+    const noButton = document.createElement("button");
+    noButton.textContent = "No";
+    noButton.value = "no";
+
+    yesButton.onclick = noButton.onclick = onClickHandler;
+
+    const buttons = document.createElement("div");
+    buttons.className = "button-group";
+    appendElements(buttons, [yesButton, noButton]);
+
+    appendElements(dialog, [label, buttons]);
+
+    dialog.classList.add("visible");
+  };
 }
 
 function createTableRow(route, domain, forwards) {
@@ -185,7 +226,8 @@ function createTableRow(route, domain, forwards) {
   };
 
   // Connect signal handler for deleting a route.
-  deleteButton.onclick = () => {
+  const message = `Delete route for alias '${route.description.alias}'?`;
+  deleteButton.onclick = showConfirmDialog(message, () => {
     deactivateUiElements(tr, elements);
     utils.getRouteById(routeId).then(route => {
       return mailgun.removeRoute(route);
@@ -199,7 +241,7 @@ function createTableRow(route, domain, forwards) {
     }).then(() => {
       activateUiElements(tr, elements);
     });
-  };
+  });
 
   return tr;
 }

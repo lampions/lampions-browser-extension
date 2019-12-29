@@ -2,7 +2,7 @@
   "manifest_version": 2,
   "name": "Mailgun",
   "description": "A small extension for defining email forwards via Mailgun.com",
-  "version": "0.2.5",
+  "version": "0.2.6",
   "permissions": [
     "storage",
     "alarms",
