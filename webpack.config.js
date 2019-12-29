@@ -1,5 +1,6 @@
 const path = require("path");
 const CopyWebpackPlugin = require("copy-webpack-plugin");
+const { CleanWebpackPlugin } = require("clean-webpack-plugin");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
 
 function copyStaticAssets(files, folders) {
@@ -16,6 +17,26 @@ function copyStaticAssets(files, folders) {
 
 module.exports = (env, argv) => {
   const devMode = argv.mode !== "production";
+
+  const plugins = [
+    copyStaticAssets(
+      ["manifest.json", ".web-extension-id", "LICENSE.md"],
+      ["img"]
+    ),
+    new HtmlWebpackPlugin({
+      template: "./src/templates/popup.html",
+      filename: "popup.html",
+      chunks: ["popup"]
+    }),
+    new HtmlWebpackPlugin({
+      template: "./src/templates/options.html",
+      filename: "options.html",
+      chunks: ["options"]
+    })
+  ];
+  if (devMode) {
+    plugins.unshift(new CleanWebpackPlugin());
+  }
 
   return {
     mode: "development",
@@ -53,21 +74,6 @@ module.exports = (env, argv) => {
         }
       ]
     },
-    plugins: [
-      copyStaticAssets(
-        ["manifest.json", ".web-extension-id", "LICENSE.md"],
-        ["img"]
-      ),
-      new HtmlWebpackPlugin({
-        template: "./src/templates/popup.html",
-        filename: "popup.html",
-        chunks: ["popup"]
-      }),
-      new HtmlWebpackPlugin({
-        template: "./src/templates/options.html",
-        filename: "options.html",
-        chunks: ["options"]
-      })
-    ]
+    plugins
   };
 };
