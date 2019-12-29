@@ -127,11 +127,11 @@ function createTableRow(route, domain, forwards) {
   const elements = [select, checkbox, copyButton, deleteButton];
 
   // Connect signal handler for changes to the route activity state.
-  checkbox.onmousedown = utils.leftClickHandler(() => {
+  checkbox.onchange = () => {
     deactivateUiElements(tr, elements);
     const checked = checkbox.checked;
     utils.getRouteById(routeId).then(route => {
-      return mailgun.updateRoute(route, {"active": !checked});
+      return mailgun.updateRoute(route, {"active": checked});
     }).then(route => {
       const routeIsActive = mailgun.isRouteActive(route);
       checkbox.checked = routeIsActive;
@@ -148,7 +148,7 @@ function createTableRow(route, domain, forwards) {
       utils.pushFailureMessage("Failed to update route");
       console.log(msg);
     }).then(() => activateUiElements(tr, elements));
-  });
+  };
 
   // Connect signal handler for changes in the forward address.
   select.onchange = event => {
@@ -176,16 +176,16 @@ function createTableRow(route, domain, forwards) {
   };
 
   // Connect signal handler for copying an address to the clipboard.
-  copyButton.onmousedown = utils.leftClickHandler(() => {
+  copyButton.onclick = () => {
     navigator.clipboard.writeText(aliasAddress).then(() => {
       utils.pushSuccessMessage("Address copied to clipboard");
     }).catch(() => {
       utils.pushFailureMessage("Failed to copy address to clipboard");
     });
-  });
+  };
 
   // Connect signal handler for deleting a route.
-  deleteButton.onmousedown = utils.leftClickHandler(() => {
+  deleteButton.onclick = () => {
     deactivateUiElements(tr, elements);
     utils.getRouteById(routeId).then(route => {
       return mailgun.removeRoute(route);
@@ -199,7 +199,7 @@ function createTableRow(route, domain, forwards) {
     }).then(() => {
       activateUiElements(tr, elements);
     });
-  });
+  };
 
   return tr;
 }

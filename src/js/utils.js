@@ -60,15 +60,6 @@ function setElementSensitive(id, status) {
   setElementSensitiveEx(element, status);
 }
 
-function leftClickHandler(callback) {
-  return event => {
-    if (event.which !== 1) {
-      return;
-    }
-    return callback(event);
-  };
-}
-
 function storageGet(method, data) {
   return new Promise((resolve, reject) => {
     method(data, items => {
@@ -146,7 +137,6 @@ export default {
   pushFailureMessage,
   setElementSensitiveEx,
   setElementSensitive,
-  leftClickHandler,
   storageLocalGet,
   storageSyncGet,
   storageLocalSet,
