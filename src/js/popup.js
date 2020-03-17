@@ -1,10 +1,13 @@
+import "core-js/stable";
+import "regenerator-runtime/runtime";
+
+import backend from "./mailgun.js";
+import utils from "./utils.js";
+
 import "../sass/main.scss";
 import "../sass/dialog.scss";
 
-import mailgun from "./mailgun.js";
-import utils from "./utils.js";
-
-function addRoute() {
+async function addRoute() {
   const input = document.getElementById("alias");
   const alias = utils.stripString(input.value);
   if (!alias) {
@@ -12,51 +15,52 @@ function addRoute() {
     return;
   }
 
-  const domainPromise = utils.storageSyncGet({"domain": ""});
-  const routesPromise = utils.storageLocalGet({"routes": []});
+  const promises = [
+    utils.storageSyncGet({"domain": ""}),
+    utils.storageLocalGet({"routes": []})
+  ];
+  const [domainItems, routesItems] = await Promise.all(promises);
+  if (domainItems === undefined || !domainItems.domain) {
+    utils.pushFailureMessage("No domain defined yet");
+    return;
+  }
+  const domain = domainItems.domain;
+  const routes = routesItems.routes;
 
-  Promise.all([domainPromise, routesPromise]).then(values => {
-    const [domainItems, routesItems] = values;
-    if (domainItems === undefined || !domainItems.domain) {
-      utils.pushFailureMessage("No domain defined yet");
+  // Check if alias is already defined.
+  for (const route of routes) {
+    if (route.description.alias === alias) {
+      utils.pushFailureMessage(`Route for alias '${alias}' already exists`);
       return;
     }
-    const domain = domainItems.domain;
-    const routes = routesItems.routes;
+  }
 
-    // Check if alias is already defined.
-    for (const route of routes) {
-      if (route.description.alias === alias) {
-        utils.pushFailureMessage("Route already defined");
-        return;
-      }
-    }
-
-    const button = document.getElementById("add");
-    const elements = [input, button];
-    elements.forEach(element => {
-      utils.setElementSensitiveEx(element, false);
-    });
-
-    determineAvailableForwardAddresses(routes).then(forwards => {
-      // TODO: Add error handling here, i.e., exit out if forwards is empty.
-      return mailgun.addRoute(alias, forwards[0]).then(route => {
-        const tr = createTableRow(route, domain, forwards);
-        const table = document.getElementById("routes-table");
-        table.insertBefore(tr, table.firstChild);
-
-        input.value = "";
-        utils.pushSuccessMessage("Route added");
-        mailgun.synchronizeData();
-      });
-    }).catch(() => {
-      utils.pushFailureMessage("Failed to add route");
-    }).then(() => {
-      elements.forEach(element => {
-        utils.setElementSensitiveEx(element, true);
-      });
-    });
+  const button = document.getElementById("add");
+  const elements = [input, button];
+  elements.forEach(element => {
+    utils.setElementSensitiveEx(element, false);
   });
+
+  // TODO: Add error handling here, i.e., exit out if forwards is empty.
+  const forwards = await determineAvailableForwardAddresses(routes);
+  let route = null;
+  try {
+    route = await backend.addRoute(alias, forwards[0]);
+  } catch {
+    utils.pushFailureMessage("Failed to add route");
+  }
+
+  if (route) {
+    const tr = createTableRow(route, domain, forwards);
+    const table = document.getElementById("routes-table");
+    table.insertBefore(tr, table.firstChild);
+
+    input.value = "";
+    utils.pushSuccessMessage("Route added");
+    backend.synchronizeData();
+  }
+
+  elements.forEach(element => utils.setElementSensitiveEx(element, true));
 }
 
 function deactivateUiElements(tr, elements) {
@@ -115,7 +119,7 @@ function showConfirmDialog(question, callback) {
 
 function createTableRow(route, domain, forwards) {
   const routeId = route.id;
-  const routeIsActive = mailgun.isRouteActive(route);
+  const routeIsActive = backend.isRouteActive(route);
 
   const tr = document.createElement("tr");
 
@@ -168,13 +172,14 @@ function createTableRow(route, domain, forwards) {
   const elements = [select, checkbox, copyButton, deleteButton];
 
   // Connect signal handler for changes to the route activity state.
-  checkbox.onchange = () => {
+  checkbox.onchange = async () => {
     deactivateUiElements(tr, elements);
     const checked = checkbox.checked;
-    utils.getRouteById(routeId).then(route => {
-      return mailgun.updateRoute(route, {"active": checked});
-    }).then(route => {
-      const routeIsActive = mailgun.isRouteActive(route);
+    const route = await backend.updateRoute(await utils.getRouteById(routeId),
+                                            {"active": checked});
+
+    try {
+      const routeIsActive = await backend.isRouteActive(route);
       checkbox.checked = routeIsActive;
       if (routeIsActive) {
         aliasLabel.classList.remove("insensitive");
@@ -182,13 +187,14 @@ function createTableRow(route, domain, forwards) {
         aliasLabel.classList.add("insensitive");
       }
       utils.pushSuccessMessage("Route updated");
-      mailgun.synchronizeData();
-    }).catch(msg => {
+      await backend.synchronizeData();
+    } catch (exception) {
       // Restore the original checkbox state.
       checkbox.checked = checked;
       utils.pushFailureMessage("Failed to update route");
-      console.log(msg);
-    }).then(() => activateUiElements(tr, elements));
+      console.log(exception.message);
+    }
+    activateUiElements(tr, elements);
   };
 
   // Connect signal handler for changes in the forward address.
@@ -202,14 +208,14 @@ function createTableRow(route, domain, forwards) {
     deactivateUiElements(tr, elements);
 
     utils.getRouteById(routeId).then(route => {
-      return mailgun.updateRoute(route, {"forward": newForward});
+      return backend.updateRoute(route, {"forward": newForward});
     }).then(route => {
       utils.pushSuccessMessage("Route updated");
-      mailgun.synchronizeData();
+      backend.synchronizeData();
     }).catch(message => {
       console.log("TODO", message);
       // Restore the original route.
-      mailgun.getRouteById(routeId).then(route => {
+      backend.getRouteById(routeId).then(route => {
         select.selectedIndex = forwards.indexOf(route.description.forward);
       });
       utils.pushFailureMessage("Failed to update route");
@@ -230,12 +236,12 @@ function createTableRow(route, domain, forwards) {
   deleteButton.onclick = showConfirmDialog(message, () => {
     deactivateUiElements(tr, elements);
     utils.getRouteById(routeId).then(route => {
-      return mailgun.removeRoute(route);
+      return backend.removeRoute(route);
     }).then(() => {
       const table = document.getElementById("routes-table");
       table.removeChild(tr);
       utils.pushSuccessMessage("Route removed");
-      mailgun.synchronizeData();
+      backend.synchronizeData();
     }).catch(() => {
       utils.pushFailureMessage("Failed to remove route");
     }).then(() => {
@@ -246,7 +252,7 @@ function createTableRow(route, domain, forwards) {
   return tr;
 }
 
-function determineAvailableForwardAddresses(routes) {
+async function determineAvailableForwardAddresses(routes) {
   const forwards = [];
 
   routes.forEach(route => {
@@ -256,38 +262,34 @@ function determineAvailableForwardAddresses(routes) {
     }
   });
 
-  return utils.storageSyncGet({"forwards": []}).then(items => {
-    if (items !== undefined && items.forwards) {
-      items.forwards.forEach(forward => {
-        if (!forwards.includes(forward)) {
-          forwards.push(forward);
-        }
-      });
-    }
-    return forwards;
-  });
+  const items = await utils.storageSyncGet({"forwards": []});
+  if (items !== undefined && items.forwards) {
+    items.forwards.forEach(forward => {
+      if (!forwards.includes(forward)) {
+        forwards.push(forward);
+      }
+    });
+  }
+  return forwards;
 }
 
-function populateRoutesTable(routes) {
+async function populateRoutesTable(routes) {
   const table = document.getElementById("routes-table");
   while (table.firstChild) {
     table.removeChild(table.firstChild);
   }
-  utils.storageSyncGet({"domain": ""}).then(items => {
-    if (items === undefined || !items.domain) {
-      return;
-    }
-
-    determineAvailableForwardAddresses(routes).then(forwards => {
-      routes.forEach(route => {
-        const tr = createTableRow(route, items.domain, forwards);
-        table.appendChild(tr);
-      });
-    });
+  const items = await utils.storageSyncGet({"domain": ""});
+  if (items === undefined || !items.domain) {
+    return;
+  }
+  const forwards = await determineAvailableForwardAddresses(routes);
+  routes.forEach(route => {
+    const tr = createTableRow(route, items.domain, forwards);
+    table.appendChild(tr);
   });
 }
 
-function initializeUi() {
+async function initializeUi() {
   const submit = document.getElementById("add");
   submit.addEventListener("click", addRoute);
 
@@ -310,13 +312,13 @@ function initializeUi() {
     window.close();
   });
 
-  utils.storageLocalGet({"routes": ""}).then(items => {
-    if (items !== undefined && items.routes) {
-      populateRoutesTable(items.routes);
-    }
-  });
+  const items = await utils.storageLocalGet({"routes": ""});
+  if (items !== undefined && items.routes) {
+    populateRoutesTable(items.routes);
+  }
 }
 
-document.addEventListener("DOMContentLoaded", () => {
-  mailgun.synchronizeData().then(initializeUi);
+document.addEventListener("DOMContentLoaded", async () => {
+  await backend.synchronizeData();
+  initializeUi();
 });

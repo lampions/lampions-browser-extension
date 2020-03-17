@@ -1,7 +1,7 @@
 import "../sass/main.scss";
 import "../sass/options.css";
 
-import mailgun from "./mailgun.js";
+import backend from "./mailgun.js";
 import utils from "./utils.js";
 
 function getForwards() {
@@ -18,7 +18,7 @@ function saveOptions() {
   const api_key = document.getElementById("api-key").value;
   utils.storageSyncSet({forwards, domain, api_key}).then(() => {
     utils.pushSuccessMessage("Options saved!");
-    mailgun.synchronizeData();
+    backend.synchronizeData();
   }).catch(() => {
     utils.pushFailureMessage("Failed to save options!");
   });
