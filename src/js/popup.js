@@ -1,7 +1,7 @@
 import "core-js/stable";
 import "regenerator-runtime/runtime";
 
-import backend from "./mailgun.js";
+import backend from "./aws.js";
 import utils from "./utils.js";
 
 import "../sass/main.scss";
@@ -24,12 +24,12 @@ async function addRoute() {
     utils.pushFailureMessage("No domain defined yet");
     return;
   }
-  const domain = domainItems.domain;
-  const routes = routesItems.routes;
+  const { domain } = domainItems;
+  const { routes } = routesItems;
 
   // Check if alias is already defined.
   for (const route of routes) {
-    if (route.description.alias === alias) {
+    if (route.alias === alias) {
       utils.pushFailureMessage(`Route for alias '${alias}' already exists`);
       return;
     }
@@ -119,12 +119,12 @@ function showConfirmDialog(question, callback) {
 
 function createTableRow(route, domain, forwards) {
   const routeId = route.id;
-  const routeIsActive = backend.isRouteActive(route);
+  const routeIsActive = route.active;
 
   const tr = document.createElement("tr");
 
   // Create alias address label.
-  const aliasAddress = route.description["alias"] + "@" + domain;
+  const aliasAddress = route.alias + "@" + domain;
   const aliasLabel = document.createElement("span");
   aliasLabel.textContent = aliasAddress;
   if (!routeIsActive) {
@@ -140,7 +140,7 @@ function createTableRow(route, domain, forwards) {
     utils.appendListElement(select, forward);
   });
   // Set the active option for the route.
-  select.selectedIndex = forwards.indexOf(route.description.forward);
+  select.selectedIndex = forwards.indexOf(route.forward);
   td = document.createElement("td");
   td.appendChild(select);
   tr.appendChild(select);
@@ -179,7 +179,7 @@ function createTableRow(route, domain, forwards) {
                                             {"active": checked});
 
     try {
-      const routeIsActive = await backend.isRouteActive(route);
+      const routeIsActive = route.active;
       checkbox.checked = routeIsActive;
       if (routeIsActive) {
         aliasLabel.classList.remove("insensitive");
@@ -216,23 +216,24 @@ function createTableRow(route, domain, forwards) {
       console.log("TODO", message);
       // Restore the original route.
       backend.getRouteById(routeId).then(route => {
-        select.selectedIndex = forwards.indexOf(route.description.forward);
+        select.selectedIndex = forwards.indexOf(route.forward);
       });
       utils.pushFailureMessage("Failed to update route");
     }).then(() => activateUiElements(tr, elements));
   };
 
   // Connect signal handler for copying an address to the clipboard.
-  copyButton.onclick = () => {
-    navigator.clipboard.writeText(aliasAddress).then(() => {
+  copyButton.onclick = async () => {
+    try {
+      await navigator.clipboard.writeText(aliasAddress)
       utils.pushSuccessMessage("Address copied to clipboard");
-    }).catch(() => {
+    } catch {
       utils.pushFailureMessage("Failed to copy address to clipboard");
-    });
+    }
   };
 
   // Connect signal handler for deleting a route.
-  const message = `Delete route for alias '${route.description.alias}'?`;
+  const message = `Delete route for alias '${route.alias}'?`;
   deleteButton.onclick = showConfirmDialog(message, () => {
     deactivateUiElements(tr, elements);
     utils.getRouteById(routeId).then(route => {
@@ -256,7 +257,7 @@ async function determineAvailableForwardAddresses(routes) {
   const forwards = [];
 
   routes.forEach(route => {
-    const forward = route.description.forward;
+    const { forward } = route;
     if (!forwards.includes(forward)) {
       forwards.push(forward);
     }
@@ -297,7 +298,7 @@ async function initializeUi() {
   input.addEventListener("input", () => {
     const alias = utils.stripString(input.value);
     // Define dummy address to validate the input.
-    const email = alias + "@domain.tld";
+    const email = `${alias}@domain.tld`;
     utils.setElementSensitiveEx(submit, utils.validateEmail(email));
   });
   input.addEventListener("keypress", () => {
@@ -319,6 +320,10 @@ async function initializeUi() {
 }
 
 document.addEventListener("DOMContentLoaded", async () => {
-  await backend.synchronizeData();
+  try {
+    await backend.synchronizeData();
+  } catch (error) {
+    utils.pushFailureMessage(error);
+  }
   initializeUi();
 });

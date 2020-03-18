@@ -1,12 +1,13 @@
 {
   "manifest_version": 2,
-  "name": "Mailgun",
-  "description": "A small extension for defining email forwards via Mailgun.com",
-  "version": "0.2.6",
+  "name": "Lampions",
+  "description": "A small extension for managing Lampions email aliases",
+  "homepage_url": "https://github.com/lampions/lampions-browser-extension",
+  "version": "0.3.0",
   "permissions": [
     "storage",
     "alarms",
-    "https://api.mailgun.net/v3"
+    "https://*.amazonaws.com/"
   ],
   "browser_specific_settings": {
     "gecko": {

@@ -1,8 +1,11 @@
+import "core-js/stable";
+import "regenerator-runtime/runtime";
+
+import backend from "./aws.js";
+import utils from "./utils.js";
+
 import "../sass/main.scss";
 import "../sass/options.css";
-
-import backend from "./mailgun.js";
-import utils from "./utils.js";
 
 function getForwards() {
   const forwards = [];
@@ -12,23 +15,32 @@ function getForwards() {
   return forwards;
 }
 
-function saveOptions() {
+async function saveOptions() {
   const forwards = getForwards();
   const domain = document.getElementById("domain").value;
-  const api_key = document.getElementById("api-key").value;
-  utils.storageSyncSet({forwards, domain, api_key}).then(() => {
+  const accessKeyId = document.getElementById("access-key-id").value;
+  const secretAccessKey = document.getElementById("secret-access-key").value;
+
+  try {
+    await utils.storageSyncSet({
+      forwards,
+      domain,
+      accessKeyId,
+      secretAccessKey
+    });
+    await backend.synchronizeData();
     utils.pushSuccessMessage("Options saved!");
-    backend.synchronizeData();
-  }).catch(() => {
-    utils.pushFailureMessage("Failed to save options!");
-  });
+  } catch (exception) {
+    utils.pushFailureMessage("Failed to save options: " + exception.message);
+  }
 }
 
 function restoreOptions() {
   utils.storageSyncGet({
-    "forwards": [],
-    "domain": "",
-    "api_key": ""
+    forwards: [],
+    domain: "",
+    accessKeyId: "",
+    secretAccessKey: ""
   }).then(items => {
     if (items === undefined) {
       return;
@@ -40,7 +52,8 @@ function restoreOptions() {
       utils.setElementSensitiveEx(select, true);
     });
     document.getElementById("domain").value = items.domain;
-    document.getElementById("api-key").value = items.api_key;
+    document.getElementById("access-key-id").value = items.accessKeyId;
+    document.getElementById("secret-access-key").value = items.secretAccessKey;
   });
 }
 
