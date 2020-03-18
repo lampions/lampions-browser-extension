@@ -1,6 +1,5 @@
 const path = require("path");
 const CopyWebpackPlugin = require("copy-webpack-plugin");
-const { CleanWebpackPlugin } = require("clean-webpack-plugin");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
 
 function copyStaticAssets(files, folders) {
@@ -34,9 +33,6 @@ module.exports = (env, argv) => {
       chunks: ["options"]
     })
   ];
-  if (devMode) {
-    plugins.unshift(new CleanWebpackPlugin());
-  }
 
   return {
     mode: "development",
