@@ -52,7 +52,7 @@ class Api {
     return new Promise((resolve, reject) => {
       this.s3_.putObject({
         Key: ROUTES_KEY,
-        Body: JSON.stringify({routes})
+        Body: JSON.stringify({routes}, null, 2)
       }, (error, data) => {
         if (error) {
           reject(error.message);
