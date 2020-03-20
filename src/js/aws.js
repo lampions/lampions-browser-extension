@@ -133,7 +133,7 @@ async function addRoute(alias, forward, meta = null) {
     createdAt,
     meta
   };
-  routes.push(route);
+  routes.unshift(route);
 
   await api.setRoutes(routes);
   return route;
