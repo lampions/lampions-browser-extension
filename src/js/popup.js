@@ -198,7 +198,7 @@ function createTableRow(route, domain, forwards) {
   };
 
   // Connect signal handler for changes in the forward address.
-  select.onchange = event => {
+  select.onchange = () => {
     const option = select.options[select.selectedIndex];
     if (!option) {
       console.log("TODO");
@@ -209,7 +209,7 @@ function createTableRow(route, domain, forwards) {
 
     utils.getRouteById(routeId).then(route => {
       return backend.updateRoute(route, {"forward": newForward});
-    }).then(route => {
+    }).then(() => {
       utils.pushSuccessMessage("Route updated");
       backend.synchronizeData();
     }).catch(message => {

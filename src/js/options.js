@@ -10,7 +10,6 @@ import "../sass/options.css";
 function getForwards() {
   const forwards = [];
   const select = document.getElementById("forwards");
-  const options = select.options;
   Array.from(select.options).forEach(option => forwards.push(option.value));
   return forwards;
 }

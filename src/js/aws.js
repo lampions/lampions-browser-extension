@@ -12,6 +12,13 @@ class RouteExistsError extends Error {
   }
 }
 
+class RouteDoesNotExistError extends Error {
+  constructor(message) {
+    super(message);
+    this.name = "RouteDoesNotExistError";
+  }
+}
+
 class Api {
   constructor({domain, accessKeyId, secretAccessKey}) {
     this.domain = domain;
@@ -53,7 +60,7 @@ class Api {
       this.s3_.putObject({
         Key: ROUTES_KEY,
         Body: JSON.stringify({routes}, null, 2)
-      }, (error, data) => {
+      }, error => {
         if (error) {
           reject(error.message);
         } else {
@@ -154,7 +161,7 @@ async function removeRoute(route) {
   const routes = await api.getRoutes();
   const index = findRouteIndexById_(routes, route.id);
   if (index === -1) {
-    throw new RouteDoesNotExistError(id);
+    throw new RouteDoesNotExistError(route.id);
   }
   routes.splice(index, 1);
 
