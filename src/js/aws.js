@@ -86,6 +86,15 @@ async function fetchRoutes() {
   return await api.getRoutes();
 }
 
+function findRouteIndexById_(routes, id) {
+  for (let i = 0; i < routes.length; ++i) {
+    if (routes[i].id === id) {
+      return i;
+    }
+  }
+  return -1;
+}
+
 async function updateRoute(route, options) {
   const getWithDefault = (object, key, fallback) => {
     const value = object[key];
@@ -139,15 +148,6 @@ async function addRoute(alias, forward, meta = null) {
   return route;
 }
 
-function findRouteIndexById_(routes, id) {
-  for (let i = 0; i < routes.length; ++i) {
-    if (routes[i].id === id) {
-      return i;
-    }
-  }
-  return -1;
-}
-
 async function removeRoute(route) {
   const api = await prepareApiCall();
 
@@ -156,7 +156,7 @@ async function removeRoute(route) {
   if (index === -1) {
     throw new RouteDoesNotExistError(id);
   }
-  routes.splice(i, 1);
+  routes.splice(index, 1);
 
   await api.setRoutes(routes);
 }
