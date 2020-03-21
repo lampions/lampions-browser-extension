@@ -189,21 +189,19 @@ function createTableRow(route, domain, forwards) {
   };
 
   // Connect signal handler for changes in the forward address.
-  select.onchange = () => {
+  select.onchange = async () => {
     deactivateUiElements(tr, elements);
     const newForward = select.options[select.selectedIndex].value;
-    utils.getRouteById(routeId).then(route => {
-      return backend.updateRoute(route, {"forward": newForward});
-    }).then(() => {
+    const route = await utils.getRouteById(routeId);
+    try {
+      await backend.updateRoute(route, {"forward": newForward});
       utils.pushSuccessMessage("Route updated");
-      backend.synchronizeData();
-    }).catch(error => {
-      // Restore the original route.
-      backend.getRouteById(routeId).then(route => {
-        select.selectedIndex = forwards.indexOf(route.forward);
-      });
+      await backend.synchronizeData();
+    } catch (error) {
+      select.selectedIndex = forwards.indexOf(route.forward);
       utils.pushFailureMessage(`Failed to update route: ${error}`);
-    }).then(() => activateUiElements(tr, elements));
+    }
+    activateUiElements(tr, elements);
   };
 
   // Connect signal handler for copying an address to the clipboard.
@@ -218,20 +216,19 @@ function createTableRow(route, domain, forwards) {
 
   // Connect signal handler for deleting a route.
   const message = `Delete route for alias '${route.alias}'?`;
-  deleteButton.onclick = showConfirmDialog(message, () => {
+  deleteButton.onclick = showConfirmDialog(message, async () => {
     deactivateUiElements(tr, elements);
-    utils.getRouteById(routeId).then(route => {
-      return backend.removeRoute(route);
-    }).then(() => {
+    const route = await utils.getRouteById(routeId);
+    try {
+      await backend.removeRoute(route);
       const table = document.getElementById("routes-table");
       table.removeChild(tr);
+      await backend.synchronizeData();
       utils.pushSuccessMessage("Route removed");
-      backend.synchronizeData();
-    }).catch((error) => {
+    } catch(error) {
       utils.pushFailureMessage(`Failed to remove route: ${error}`);
-    }).then(() => {
-      activateUiElements(tr, elements);
-    });
+    }
+    activateUiElements(tr, elements);
   });
 
   return tr;
