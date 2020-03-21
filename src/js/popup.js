@@ -27,14 +27,6 @@ async function addRoute() {
   const { domain } = domainItems;
   const { routes } = routesItems;
 
-  // Check if alias is already defined.
-  for (const route of routes) {
-    if (route.alias === alias) {
-      utils.pushFailureMessage(`Route for alias '${alias}' already exists`);
-      return;
-    }
-  }
-
   const button = document.getElementById("add");
   const elements = [input, button];
   elements.forEach(element => {
@@ -46,8 +38,8 @@ async function addRoute() {
   let route = null;
   try {
     route = await backend.addRoute(alias, forwards[0]);
-  } catch {
-    utils.pushFailureMessage("Failed to add route");
+  } catch (error) {
+    utils.pushFailureMessage(`Failed to add route: ${error}`);
   }
 
   if (route) {
@@ -175,8 +167,8 @@ function createTableRow(route, domain, forwards) {
   checkbox.onchange = async () => {
     deactivateUiElements(tr, elements);
     const checked = checkbox.checked;
-    const route = await backend.updateRoute(await utils.getRouteById(routeId),
-                                            {"active": checked});
+    const route = await backend.updateRoute(
+      await utils.getRouteById(routeId), {"active": checked});
 
     try {
       const routeIsActive = route.active;
@@ -188,37 +180,29 @@ function createTableRow(route, domain, forwards) {
       }
       utils.pushSuccessMessage("Route updated");
       await backend.synchronizeData();
-    } catch (exception) {
+    } catch (error) {
       // Restore the original checkbox state.
       checkbox.checked = checked;
-      utils.pushFailureMessage("Failed to update route");
-      console.log(exception.message);
+      utils.pushFailureMessage(`Failed to update route: ${error}`);
     }
     activateUiElements(tr, elements);
   };
 
   // Connect signal handler for changes in the forward address.
   select.onchange = () => {
-    const option = select.options[select.selectedIndex];
-    if (!option) {
-      console.log("TODO");
-    }
-    const newForward = option.value;
-
     deactivateUiElements(tr, elements);
-
+    const newForward = select.options[select.selectedIndex].value;
     utils.getRouteById(routeId).then(route => {
       return backend.updateRoute(route, {"forward": newForward});
     }).then(() => {
       utils.pushSuccessMessage("Route updated");
       backend.synchronizeData();
-    }).catch(message => {
-      console.log("TODO", message);
+    }).catch(error => {
       // Restore the original route.
       backend.getRouteById(routeId).then(route => {
         select.selectedIndex = forwards.indexOf(route.forward);
       });
-      utils.pushFailureMessage("Failed to update route");
+      utils.pushFailureMessage(`Failed to update route: ${error}`);
     }).then(() => activateUiElements(tr, elements));
   };
 
@@ -244,7 +228,7 @@ function createTableRow(route, domain, forwards) {
       utils.pushSuccessMessage("Route removed");
       backend.synchronizeData();
     }).catch((error) => {
-      utils.pushFailureMessage(`Failed to remove route: ${error.message}`);
+      utils.pushFailureMessage(`Failed to remove route: ${error}`);
     }).then(() => {
       activateUiElements(tr, elements);
     });
@@ -323,7 +307,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   try {
     await backend.synchronizeData();
   } catch (error) {
-    utils.pushFailureMessage(error);
+    utils.pushFailureMessage(`Failure: ${error}`);
   }
   initializeUi();
 });

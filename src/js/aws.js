@@ -5,20 +5,6 @@ import utils from "./utils.js";
 
 const ROUTES_KEY = "routes.json";
 
-class RouteExistsError extends Error {
-  constructor(message) {
-    super(message);
-    this.name = "RouteExistsError";
-  }
-}
-
-class RouteDoesNotExistError extends Error {
-  constructor(message) {
-    super(message);
-    this.name = "RouteDoesNotExistError";
-  }
-}
-
 class Api {
   constructor({domain, accessKeyId, secretAccessKey}) {
     this.domain = domain;
@@ -116,7 +102,7 @@ async function updateRoute(route, options) {
   const routes = await api.getRoutes();
   const index = findRouteIndexById_(routes, route.id);
   if (index === -1) {
-    throw `Route with id ${route.id} does not exist`;
+    throw `Unknown route '${route.alias}'`;
   }
   const newRoute = {
     ...route,
@@ -134,7 +120,7 @@ async function addRoute(alias, forward, meta = null) {
   const routes = await api.getRoutes();
   for (const route of routes) {
     if (route.alias === alias) {
-      throw new RouteExistsError(alias);
+      throw `Alias '${alias}' already exists`;
     }
   }
 
@@ -161,7 +147,7 @@ async function removeRoute(route) {
   const routes = await api.getRoutes();
   const index = findRouteIndexById_(routes, route.id);
   if (index === -1) {
-    throw new RouteDoesNotExistError("invalid route ID");
+    throw `Unknown route '${route.alias}'`;
   }
   routes.splice(index, 1);
 
