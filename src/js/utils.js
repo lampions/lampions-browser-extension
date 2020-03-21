@@ -103,28 +103,27 @@ function storageSyncSet(data) {
 }
 
 function getRouteById(id) {
-  return new Promise((resolve, reject) => {
-    storageLocalGet({"routes": []}).then(items => {
-      if (items === undefined) {
-        reject("Failed to retrieve routes!");
-        return;
+  return new Promise(async (resolve, reject) => {
+    const items = await storageLocalGet({"routes": []});
+    if (items === undefined) {
+      reject("Failed to retrieve routes!");
+      return;
+    }
+    let route = null;
+    const routes = items.routes;
+    for (const route_ of routes) {
+      if (route_.id === id) {
+        route = route_;
+        break;
       }
-      let route = null;
-      const routes = items.routes;
-      for (const route_ of routes) {
-        if (route_.id === id) {
-          route = route_;
-          break;
-        }
-      }
-      if (!route) {
-        reject("No route information for route id '" + id + "'");
-        return;
-      } else {
-        resolve(route);
-        return;
-      }
-    });
+    }
+    if (!route) {
+      reject("No route information for route id '" + id + "'");
+      return;
+    } else {
+      resolve(route);
+      return;
+    }
   });
 }
 

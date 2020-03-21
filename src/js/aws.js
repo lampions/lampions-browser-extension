@@ -58,19 +58,18 @@ class Api {
 }
 
 function prepareApiCall() {
-  return new Promise((resolve, reject) => {
-    utils.storageSyncGet({
+  return new Promise(async (resolve, reject) => {
+    const items = await utils.storageSyncGet({
       domain: "",
       accessKeyId: "",
       secretAccessKey: ""
-    }).then(items => {
-      if (items !== undefined && items.domain && items.accessKeyId &&
-          items.secretAccessKey) {
-        resolve(new Api(items));
-      } else {
-        reject("Failed to obtain domain and AWS secrets from sync storage");
-      }
     });
+    if (items !== undefined && items.domain && items.accessKeyId &&
+        items.secretAccessKey) {
+      resolve(new Api(items));
+    } else {
+      reject("Failed to obtain domain and AWS secrets from sync storage");
+    }
   });
 }
 
