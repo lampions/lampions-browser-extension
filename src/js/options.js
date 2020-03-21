@@ -34,26 +34,25 @@ async function saveOptions() {
   }
 }
 
-function restoreOptions() {
-  utils.storageSyncGet({
+async function restoreOptions() {
+  const items = await utils.storageSyncGet({
     forwards: [],
     domain: "",
     accessKeyId: "",
     secretAccessKey: ""
-  }).then(items => {
-    if (items === undefined) {
-      return;
-    }
-    const select = document.getElementById("forwards");
-    select.setAttribute("disabled", true);
-    items.forwards.forEach(item => {
-      utils.appendListElement(select, item);
-      utils.setElementSensitiveEx(select, true);
-    });
-    document.getElementById("domain").value = items.domain;
-    document.getElementById("access-key-id").value = items.accessKeyId;
-    document.getElementById("secret-access-key").value = items.secretAccessKey;
   });
+  if (items === undefined) {
+    return;
+  }
+  const select = document.getElementById("forwards");
+  select.setAttribute("disabled", true);
+  items.forwards.forEach(item => {
+    utils.appendListElement(select, item);
+    utils.setElementSensitiveEx(select, true);
+  });
+  document.getElementById("domain").value = items.domain;
+  document.getElementById("access-key-id").value = items.accessKeyId;
+  document.getElementById("secret-access-key").value = items.secretAccessKey;
 }
 
 function addForwardAddress() {
