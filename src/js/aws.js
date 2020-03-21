@@ -161,7 +161,7 @@ async function removeRoute(route) {
   const routes = await api.getRoutes();
   const index = findRouteIndexById_(routes, route.id);
   if (index === -1) {
-    throw new RouteDoesNotExistError(route.id);
+    throw new RouteDoesNotExistError("invalid route ID");
   }
   routes.splice(index, 1);
 

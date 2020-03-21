@@ -243,8 +243,8 @@ function createTableRow(route, domain, forwards) {
       table.removeChild(tr);
       utils.pushSuccessMessage("Route removed");
       backend.synchronizeData();
-    }).catch(() => {
-      utils.pushFailureMessage("Failed to remove route");
+    }).catch((error) => {
+      utils.pushFailureMessage(`Failed to remove route: ${error.message}`);
     }).then(() => {
       activateUiElements(tr, elements);
     });
