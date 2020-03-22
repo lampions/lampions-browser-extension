@@ -22,7 +22,7 @@ yarn install && yarn run build
 ```
 
 to install all dependencies, and build the extension, placing the unpackaged
-extension on the `addon` directory.
+extension in the `addon` directory.
 
 ## Installation
 
