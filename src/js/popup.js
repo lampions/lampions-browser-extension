@@ -16,8 +16,8 @@ async function addRoute() {
   }
 
   const promises = [
-    utils.storageSyncGet({"domain": ""}),
-    utils.storageLocalGet({"routes": []})
+    utils.storageSyncGet({domain: ""}),
+    utils.storageLocalGet({routes: []})
   ];
   const [domainItems, routesItems] = await Promise.all(promises);
   if (domainItems === undefined || !domainItems.domain) {
@@ -168,7 +168,7 @@ function createTableRow(route, domain, forwards) {
     deactivateUiElements(tr, elements);
     const checked = checkbox.checked;
     const route = await backend.updateRoute(
-      await utils.getRouteById(routeId), {"active": checked});
+      await utils.getRouteById(routeId), {active: checked});
 
     try {
       const routeIsActive = route.active;
@@ -194,7 +194,7 @@ function createTableRow(route, domain, forwards) {
     const newForward = select.options[select.selectedIndex].value;
     const route = await utils.getRouteById(routeId);
     try {
-      await backend.updateRoute(route, {"forward": newForward});
+      await backend.updateRoute(route, {forward: newForward});
       utils.pushSuccessMessage("Route updated");
       await backend.synchronizeData();
     } catch (error) {
@@ -244,7 +244,7 @@ async function determineAvailableForwardAddresses(routes) {
     }
   });
 
-  const items = await utils.storageSyncGet({"forwards": []});
+  const items = await utils.storageSyncGet({forwards: []});
   if (items !== undefined && items.forwards) {
     items.forwards.forEach(forward => {
       if (!forwards.includes(forward)) {
@@ -260,7 +260,7 @@ async function populateRoutesTable(routes) {
   while (table.firstChild) {
     table.removeChild(table.firstChild);
   }
-  const items = await utils.storageSyncGet({"domain": ""});
+  const items = await utils.storageSyncGet({domain: ""});
   if (items === undefined || !items.domain) {
     return;
   }
@@ -294,7 +294,7 @@ async function initializeUi() {
     window.close();
   });
 
-  const items = await utils.storageLocalGet({"routes": ""});
+  const items = await utils.storageLocalGet({routes: ""});
   if (items !== undefined && items.routes) {
     populateRoutesTable(items.routes);
   }

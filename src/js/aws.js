@@ -57,20 +57,17 @@ class Api {
   }
 }
 
-function prepareApiCall() {
-  return new Promise(async (resolve, reject) => {
-    const items = await utils.storageSyncGet({
-      domain: "",
-      accessKeyId: "",
-      secretAccessKey: ""
-    });
-    if (items !== undefined && items.domain && items.accessKeyId &&
-        items.secretAccessKey) {
-      resolve(new Api(items));
-    } else {
-      reject("Failed to obtain domain and AWS secrets from sync storage");
-    }
+async function prepareApiCall() {
+  const items = await utils.storageSyncGet({
+    domain: "",
+    accessKeyId: "",
+    secretAccessKey: ""
   });
+  if (items !== undefined && items.domain && items.accessKeyId &&
+      items.secretAccessKey) {
+    return new Api(items);
+  }
+  throw "Failed to obtain domain and AWS secrets from sync storage";
 }
 
 async function fetchRoutes() {

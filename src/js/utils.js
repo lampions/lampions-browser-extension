@@ -102,29 +102,23 @@ function storageSyncSet(data) {
   return storageSet(chrome.storage.sync.set, data);
 }
 
-function getRouteById(id) {
-  return new Promise(async (resolve, reject) => {
-    const items = await storageLocalGet({"routes": []});
-    if (items === undefined) {
-      reject("Failed to retrieve routes!");
-      return;
+async function getRouteById(id) {
+  const items = await storageLocalGet({"routes": []});
+  if (items === undefined) {
+    throw "Failed to retrieve routes!";
+  }
+  let route = null;
+  const routes = items.routes;
+  for (const route_ of routes) {
+    if (route_.id === id) {
+      route = route_;
+      break;
     }
-    let route = null;
-    const routes = items.routes;
-    for (const route_ of routes) {
-      if (route_.id === id) {
-        route = route_;
-        break;
-      }
-    }
-    if (!route) {
-      reject("No route information for route id '" + id + "'");
-      return;
-    } else {
-      resolve(route);
-      return;
-    }
-  });
+  }
+  if (!route) {
+    throw "No route information for route id '" + id + "'";
+  }
+  return route;
 }
 
 export default {
