@@ -88,14 +88,6 @@ function findRouteIndexById_(routes, id) {
 }
 
 async function updateRoute(route, options) {
-  const getWithDefault = (object, key, fallback) => {
-    const value = object[key];
-    if (value === undefined) {
-      return fallback;
-    }
-    return value;
-  };
-
   const api = await prepareApiCall();
 
   const routes = await api.getRoutes();
@@ -105,8 +97,8 @@ async function updateRoute(route, options) {
   }
   const newRoute = {
     ...route,
-    active: getWithDefault(options, "active", route.active),
-    forward: getWithDefault(options, "forward", route.forward)
+    active: (options.active === undefined) ? route.active : options.active,
+    forward: options.forward || route.forward
   };
   routes[index] = newRoute;
   await api.setRoutes(routes);
